@@ -1,17 +1,19 @@
 package com.example.playlistmaker
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -20,15 +22,12 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,6 +46,12 @@ class MainActivity : ComponentActivity() {
                 onSettingsButtonClick = {
                     val settingsIntent = Intent(this, SettingsActivity::class.java)
                     startActivity(settingsIntent)
+                },
+                onFavouriteButtonClick = {
+                    Toast.makeText(this, R.string.favourite, Toast.LENGTH_SHORT).show()
+                },
+                onPlaylistsButtonClick = {
+                    Toast.makeText(this, R.string.Playlists, Toast.LENGTH_SHORT).show()
                 }
             )
         }
@@ -54,28 +59,26 @@ class MainActivity : ComponentActivity() {
 }
 
 
-
 @Composable
 private fun ScreenButton(
     text: String,
     icon: ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
-    Button(onClick = onClick, colors = ButtonDefaults.buttonColors(Color.White)) {
+    Row(
+        modifier = Modifier
+            .clickable { onClick() }
+            .fillMaxWidth()
+            .padding(15.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
 
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(15.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row {
-                Icon(imageVector = icon, contentDescription = null, tint = Color.Black)
-                Text(text = text, color = Color.Black)
-            }
-
-            Icon(imageVector = Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
-
+    ) {
+        Row {
+            Icon(imageVector = icon, contentDescription = null, tint = Color.Black)
+            Text(text = text, color = Color.Black)
         }
 
+        Icon(imageVector = Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
     }
 }
 
@@ -83,40 +86,42 @@ private fun ScreenButton(
 @Preview
 @Composable
 fun MainScreen(
-    context: Context = LocalContext.current,
+    onFavouriteButtonClick: () -> Unit = {},
+    onPlaylistsButtonClick: () -> Unit = {},
     onSearchButtonClick: () -> Unit = {},
     onSettingsButtonClick: () -> Unit = {}
 ) {
     Column(
-        modifier = Modifier.background(Color.Blue).fillMaxSize()
+        modifier = Modifier
+            .background(Color.Blue)
+            .fillMaxSize()
     ) {
         Text(
             text = stringResource(R.string.header),
             color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f).padding(top = 30.dp, start = 10.dp)
+            modifier = Modifier.padding(top = 24.dp, start = 16.dp)
         )
-
+        Spacer(Modifier.height(10.dp))
         Column(
             modifier = Modifier
-                .background(Color.White, RoundedCornerShape(10))
+                .background(Color.White, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                 .fillMaxSize()
-                .weight(7f)
         ) {
-            ScreenButton("Поиск", Icons.Default.Search) {
+            ScreenButton(stringResource(R.string.Search), Icons.Default.Search) {
                 onSearchButtonClick()
             }
 
-            ScreenButton("Плейлисты", Icons.Default.DateRange) {
-                Toast.makeText(context, "Плейлисты", Toast.LENGTH_SHORT).show()
+            ScreenButton(stringResource(R.string.Playlists), Icons.Default.DateRange) {
+                onPlaylistsButtonClick()
             }
 
-            ScreenButton("Избранное", Icons.Default.FavoriteBorder) {
-                Toast.makeText(context, "Избранное", Toast.LENGTH_SHORT).show()
+            ScreenButton(stringResource(R.string.favourite), Icons.Default.FavoriteBorder) {
+                onFavouriteButtonClick()
             }
 
-            ScreenButton("Настройки", Icons.Default.Settings) {
+            ScreenButton(stringResource(R.string.settings), Icons.Default.Settings) {
                 onSettingsButtonClick()
             }
 
