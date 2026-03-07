@@ -33,27 +33,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
+import com.example.playlistmaker.navigation.PlaylistHost
+import com.example.playlistmaker.navigation.Screens
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MainScreen(
-                onSearchButtonClick = {
-                    val searchIntent = Intent(this, FinderActivity::class.java)
-                    startActivity(searchIntent)
-                },
-                onSettingsButtonClick = {
-                    val settingsIntent = Intent(this, SettingsActivity::class.java)
-                    startActivity(settingsIntent)
-                },
-                onFavouriteButtonClick = {
-                    Toast.makeText(this, R.string.favourite, Toast.LENGTH_SHORT).show()
-                },
-                onPlaylistsButtonClick = {
-                    Toast.makeText(this, R.string.Playlists, Toast.LENGTH_SHORT).show()
-                }
-            )
+            val navController = rememberNavController()
+            PlaylistHost(navController)
+//            MainScreen(
+//                onSearchButtonClick = {
+//                    val searchIntent = Intent(this, FinderActivity::class.java)
+//                    startActivity(searchIntent)
+//                },
+//                onSettingsButtonClick = {
+//                    val settingsIntent = Intent(this, SettingsActivity::class.java)
+//                    startActivity(settingsIntent)
+//                },
+//                onFavouriteButtonClick = {
+//                    Toast.makeText(this, R.string.favourite, Toast.LENGTH_SHORT).show()
+//                },
+//                onPlaylistsButtonClick = {
+//                    Toast.makeText(this, R.string.Playlists, Toast.LENGTH_SHORT).show()
+//                }
+//            )
         }
     }
 }
@@ -83,13 +91,12 @@ private fun ScreenButton(
 }
 
 
-@Preview
 @Composable
 fun MainScreen(
     onFavouriteButtonClick: () -> Unit = {},
     onPlaylistsButtonClick: () -> Unit = {},
     onSearchButtonClick: () -> Unit = {},
-    onSettingsButtonClick: () -> Unit = {}
+    onSettingsButtonClick: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier

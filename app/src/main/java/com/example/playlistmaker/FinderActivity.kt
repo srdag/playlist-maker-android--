@@ -1,6 +1,5 @@
 package com.example.playlistmaker
 
-import android.R
 import android.annotation.SuppressLint
 import android.graphics.drawable.Icon
 import android.os.Bundle
@@ -38,12 +37,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.navigation.NavHostController
 
 class FinderActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            FinderScreen()
+
         }
     }
 }
@@ -51,16 +51,20 @@ class FinderActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@Preview
 @Composable
-fun FinderScreen() {
+fun FinderScreen(
+    navController: NavHostController,
+    onArrowBackClicked: () -> Unit
+) {
     var textFieldValue by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {Text("Поиск")},
-                navigationIcon = { IconButton(onClick = {}) { Icon(Icons.Default.ArrowBack, null) } }
+                navigationIcon = { IconButton(onClick = {
+                    onArrowBackClicked()
+                }) { Icon(Icons.Default.ArrowBack, null) } }
             )
         }
     ) { paddingValues ->
