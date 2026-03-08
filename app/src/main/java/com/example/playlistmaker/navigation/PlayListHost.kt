@@ -1,7 +1,6 @@
 package com.example.playlistmaker.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -30,7 +29,7 @@ fun PlaylistHost(
         }
 
         composable(Screens.FinderScreen.route) {
-            FinderScreen(navController = navController) { navController.popBackStack() }
+            FinderScreen { navController.popBackStack() }
         }
     }
 }
