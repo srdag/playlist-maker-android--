@@ -5,7 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.playlistmaker.FinderScreen
-import com.example.playlistmaker.MainScreen
+import com.example.playlistmaker.ui.activity.MainScreen
 import com.example.playlistmaker.SettingsScreen
 
 
