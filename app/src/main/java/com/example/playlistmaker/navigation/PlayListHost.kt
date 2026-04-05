@@ -1,17 +1,21 @@
 package com.example.playlistmaker.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.playlistmaker.FinderScreen
+import com.example.playlistmaker.ui.search.FinderScreen
 import com.example.playlistmaker.ui.activity.MainScreen
 import com.example.playlistmaker.SettingsScreen
+import com.example.playlistmaker.ui.search.SearchViewModel
 
 
 @Composable
 fun PlaylistHost(
     navController: NavHostController,
+    viewModel: SearchViewModel,
 ) {
     NavHost(navController, Screens.MainScreen.route) {
         composable(Screens.MainScreen.route) {
@@ -30,7 +34,7 @@ fun PlaylistHost(
         }
 
         composable(Screens.FinderScreen.route) {
-            FinderScreen { navController.popBackStack() }
+            FinderScreen(viewModel = viewModel) { navController.popBackStack()  }
         }
     }
 }

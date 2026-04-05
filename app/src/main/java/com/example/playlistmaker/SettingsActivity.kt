@@ -31,6 +31,10 @@ fun SettingsScreen(
 
     val emailUri = stringResource(R.string.mailto_dorogaada_yandex_ru)
     val agreementUrl = stringResource(R.string.https_praktikum_yandex_ru_offer)
+    val emailSubject = stringResource(R.string.email_subject)
+    val emailBody = stringResource(R.string.email_body)
+    val shareText = stringResource(R.string.share_app_text)
+
 
     Scaffold(
         topBar = {
@@ -74,7 +78,7 @@ fun SettingsScreen(
 
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, "вступай в приложение")
+                    putExtra(Intent.EXTRA_TEXT, shareText)
                 }
 
                 context.startActivity(
@@ -91,11 +95,11 @@ fun SettingsScreen(
                     .buildUpon()
                     .appendQueryParameter(
                         "subject",
-                        "Сообщение разработчикам и разработчицам приложения Playlist Maker"
+                        emailSubject
                     )
                     .appendQueryParameter(
                         "body",
-                        "Спасибо разработчикам и разработчицам за крутое приложение!"
+                        emailBody
                     )
                     .build()
 
