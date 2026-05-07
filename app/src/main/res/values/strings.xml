@@ -15,4 +15,6 @@
     <string name="share_app_text">вступай в приложение</string>
     <string name="email_subject">Сообщение разработчикам и разработчицам приложения Playlist Maker</string>
     <string name="email_body">Спасибо разработчикам и разработчицам за крутое приложение!</string>
+    <string name="search_icon">иконка поиска</string>
+    <string name="add_playlist">Добавить плейлист\n</string>
 </resources>
