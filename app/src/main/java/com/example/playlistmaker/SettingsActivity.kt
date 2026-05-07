@@ -93,20 +93,17 @@ fun SettingsScreen(
 
                 val uri = Uri.parse(emailUri)
                     .buildUpon()
-                    .appendQueryParameter(
-                        "subject",
-                        emailSubject
-                    )
-                    .appendQueryParameter(
-                        "body",
-                        emailBody
-                    )
+                    .appendQueryParameter("subject", emailSubject)
+                    .appendQueryParameter("body", emailBody)
                     .build()
 
                 val intent = Intent(Intent.ACTION_SENDTO, uri)
 
-                if (intent.resolveActivity(context.packageManager) != null) {
+                // Вместо resolveActivity используем try-catch
+                try {
                     context.startActivity(intent)
+                } catch (e: Exception) {
+                    //TODO bimbam
                 }
             }
 
