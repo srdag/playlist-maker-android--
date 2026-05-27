@@ -15,4 +15,19 @@
     <string name="share_app_text">вступай в приложение</string>
     <string name="email_subject">Сообщение разработчикам и разработчицам приложения Playlist Maker</string>
     <string name="email_body">Спасибо разработчикам и разработчицам за крутое приложение!</string>
+    <string name="search_icon">Поиск</string>
+    <string name="add_playlist">Добавить плейлист</string>
+    <string name="new_playlist">Новый плейлист</string>
+    <string name="playlist_name">Название плейлиста</string>
+    <string name="playlist_description">Описание</string>
+    <string name="save">Сохранить</string>
+    <string name="track_details">О треке</string>
+    <string name="add_to_favorite">В избранное</string>
+    <string name="add_to_playlist_action">В плейлист</string>
+    <string name="select_playlist">Выберите плейлист</string>
+    <string name="no_playlists">Плейлистов пока нет</string>
+    <string name="no_favorites">Нет избранных треков</string>
+    <string name="enter_search_string">Введите строку для поиска</string>
+    <string name="nothing_found">Ничего не найдено</string>
+    <string name="duration_label">Длительность</string>
 </resources>

@@ -29,11 +29,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
 import com.example.playlistmaker.R
 import com.example.playlistmaker.navigation.PlaylistHost
+import com.example.playlistmaker.ui.playlists.PlaylistsViewModel
 import com.example.playlistmaker.ui.search.SearchViewModel
 
 class MainActivity : ComponentActivity() {
-    private val searchViewModel by viewModels<SearchViewModel>{
+    private val searchViewModel by viewModels<SearchViewModel> {
         SearchViewModel.getViewModelFactory()
+    }
+    private val playlistsViewModel by viewModels<PlaylistsViewModel> {
+        PlaylistsViewModel.getViewModelFactory()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +45,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
-            PlaylistHost(navController, searchViewModel)
+            PlaylistHost(navController, searchViewModel, playlistsViewModel)
         }
     }
 }
