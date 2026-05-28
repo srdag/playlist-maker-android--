@@ -8,6 +8,9 @@ enum class Screens(val route: String) {
     FavoritesScreen("favorites_screen"),
     NewPlaylistScreen("new_playlist_screen"),
 
+    // Маршрут отдельного плейлиста — принимает id.
+    PlaylistScreen("playlist_screen/{playlistId}"),
+
     // Параметры передаются как path-arguments
-    TrackDetailsScreen("track_details_screen/{trackName}/{artistName}/{trackTime}"),
+    TrackDetailsScreen("track_details_screen/{trackName}/{artistName}/{trackTime}/{artworkUrl}"),
 }

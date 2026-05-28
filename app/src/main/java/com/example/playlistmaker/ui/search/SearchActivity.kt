@@ -1,24 +1,51 @@
 package com.example.playlistmaker.ui.search
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.SubcomposeAsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.data.network.Track
 
@@ -31,6 +58,7 @@ fun FinderScreen(
 ) {
     val screenState by viewModel.searchScreenState.collectAsState()
     var text by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Scaffold(
         topBar = {
@@ -51,7 +79,7 @@ fun FinderScreen(
         Column(
             modifier = Modifier
                 .padding(paddingValues)
-                .fillMaxWidth(),
+                .fillMaxSize(),
         ) {
             OutlinedTextField(
                 value = text,
@@ -66,11 +94,8 @@ fun FinderScreen(
                 placeholder = { Text(stringResource(R.string.Search)) },
                 leadingIcon = {
                     Icon(
-                        modifier = Modifier.clickable {
-                            if (text.isNotBlank()) viewModel.search(text)
-                        },
                         imageVector = Icons.Filled.Search,
-                        contentDescription = "Search Icon"
+                        contentDescription = stringResource(R.string.search_icon)
                     )
                 },
                 trailingIcon = {
@@ -78,24 +103,24 @@ fun FinderScreen(
                         IconButton(onClick = {
                             text = ""
                             viewModel.clearSearch()
+                            keyboardController?.hide()
                         }) {
-                            Icon(Icons.Default.Clear, contentDescription = null)
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = stringResource(R.string.clear_search)
+                            )
                         }
                     }
                 },
+                singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
             )
 
-            when (screenState) {
+            when (val state = screenState) {
                 is SearchState.Initial -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(stringResource(R.string.enter_search_string))
-                    }
+                    EmptyHint(message = stringResource(R.string.enter_search_string))
                 }
 
                 is SearchState.Searching -> {
@@ -108,21 +133,18 @@ fun FinderScreen(
                 }
 
                 is SearchState.Success -> {
-                    val tracks = (screenState as SearchState.Success).list
-                    if (tracks.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(stringResource(R.string.nothing_found))
-                        }
+                    if (state.list.isEmpty()) {
+                        Placeholder(
+                            iconRes = R.drawable.ic_music,
+                            message = stringResource(R.string.nothing_found)
+                        )
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            items(tracks.size) { index ->
-                                TrackListItem(track = tracks[index]) {
-                                    onTrackClick(tracks[index])
+                            items(state.list.size) { index ->
+                                TrackListItem(track = state.list[index]) {
+                                    onTrackClick(state.list[index])
                                 }
                                 HorizontalDivider(thickness = 0.5.dp)
                             }
@@ -131,13 +153,60 @@ fun FinderScreen(
                 }
 
                 is SearchState.Fail -> {
-                    val error = (screenState as SearchState.Fail).error
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Ошибка: $error", color = Color.Red)
-                    }
+                    Placeholder(
+                        iconRes = R.drawable.ic_music,
+                        message = stringResource(R.string.server_error),
+                        actionText = stringResource(R.string.refresh),
+                        onAction = { viewModel.retry() }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyHint(message: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(message, color = Color.Gray)
+    }
+}
+
+@Composable
+private fun Placeholder(
+    iconRes: Int,
+    message: String,
+    actionText: String? = null,
+    onAction: (() -> Unit)? = null
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                modifier = Modifier.size(96.dp),
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                tint = Color.LightGray
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = message,
+                fontSize = 16.sp,
+                color = Color.Gray,
+                textAlign = TextAlign.Center
+            )
+            if (actionText != null && onAction != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = onAction) {
+                    Text(actionText)
                 }
             }
         }
@@ -154,14 +223,12 @@ fun TrackListItem(track: Track, onClick: () -> Unit = {}) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Image(
-            modifier = Modifier
-                .size(48.dp)
-                .padding(end = 8.dp),
-            painter = painterResource(id = R.drawable.ic_music),
-            contentDescription = "Трек ${track.trackName}",
-            colorFilter = ColorFilter.tint(Color.Gray)
+        TrackArtwork(
+            artworkUrl = track.artworkUrl,
+            contentDescription = "Обложка ${track.trackName}",
+            size = 48
         )
+        Spacer(modifier = Modifier.size(8.dp))
         Column(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start
@@ -172,6 +239,55 @@ fun TrackListItem(track: Track, onClick: () -> Unit = {}) {
         Text(
             text = track.trackTime,
             modifier = Modifier.padding(start = 8.dp)
+        )
+    }
+}
+
+/**
+ * Универсальный компонент обложки.
+ * Пока картинка не загружена — рисует плейсхолдер (нота).
+ * Если URL отсутствует или загрузка упала — также показывает плейсхолдер.
+ */
+@Composable
+fun TrackArtwork(
+    artworkUrl: String?,
+    contentDescription: String?,
+    size: Int,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(4.dp)
+    Box(
+        modifier = modifier
+            .size(size.dp)
+            .clip(shape),
+        contentAlignment = Alignment.Center
+    ) {
+        if (artworkUrl.isNullOrBlank()) {
+            ArtworkPlaceholder(size = size)
+        } else {
+            SubcomposeAsyncImage(
+                model = artworkUrl,
+                contentDescription = contentDescription,
+                contentScale = ContentScale.Crop,
+                loading = { ArtworkPlaceholder(size = size) },
+                error = { ArtworkPlaceholder(size = size) },
+                modifier = Modifier.size(size.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ArtworkPlaceholder(size: Int) {
+    Box(
+        modifier = Modifier.size(size.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            modifier = Modifier.size((size * 0.6f).dp),
+            painter = painterResource(id = R.drawable.ic_music),
+            contentDescription = null,
+            tint = Color.Gray
         )
     }
 }

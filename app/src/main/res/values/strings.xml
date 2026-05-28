@@ -30,4 +30,11 @@
     <string name="enter_search_string">Введите строку для поиска</string>
     <string name="nothing_found">Ничего не найдено</string>
     <string name="duration_label">Длительность</string>
+    <string name="clear_search">Очистить поиск</string>
+    <string name="server_error">Произошла ошибка сервера. Проверьте подключение к интернету</string>
+    <string name="refresh">Обновить</string>
+    <string name="back">Назад</string>
+    <string name="tracks_count">треков</string>
+    <string name="minutes_short">мин</string>
+    <string name="playlist_is_empty">В плейлисте пока нет треков</string>
 </resources>

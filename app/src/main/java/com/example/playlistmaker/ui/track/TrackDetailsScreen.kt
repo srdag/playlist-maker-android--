@@ -1,6 +1,5 @@
 package com.example.playlistmaker.ui.track
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,8 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.example.playlistmaker.R
 import com.example.playlistmaker.data.network.Track
 import com.example.playlistmaker.ui.playlists.PlaylistsViewModel
+import com.example.playlistmaker.ui.search.TrackArtwork
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,16 +53,18 @@ fun TrackDetailsScreen(
     trackName: String,
     artistName: String,
     trackTime: String,
+    artworkUrl: String?,
     viewModel: PlaylistsViewModel,
     onBack: () -> Unit
 ) {
     // Восстанавливаем исходный трек по аргументам навигации.
-    val initialTrack = remember(trackName, artistName, trackTime) {
+    val initialTrack = remember(trackName, artistName, trackTime, artworkUrl) {
         Track(
             id = (trackName + artistName).hashCode().toLong(),
             trackName = trackName,
             artistName = artistName,
-            trackTime = trackTime
+            trackTime = trackTime,
+            artworkUrl = artworkUrl
         )
     }
 
@@ -92,7 +92,7 @@ fun TrackDetailsScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 }
@@ -106,11 +106,10 @@ fun TrackDetailsScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                modifier = Modifier.size(140.dp),
-                painter = painterResource(id = R.drawable.ic_music),
+            TrackArtwork(
+                artworkUrl = currentTrack.artworkUrl,
                 contentDescription = currentTrack.trackName,
-                colorFilter = ColorFilter.tint(Color.Gray)
+                size = 200
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -214,14 +213,12 @@ fun TrackDetailsScreen(
                                     .padding(vertical = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Image(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .padding(end = 8.dp),
-                                    painter = painterResource(id = R.drawable.ic_music),
+                                TrackArtwork(
+                                    artworkUrl = null,
                                     contentDescription = p.name,
-                                    colorFilter = ColorFilter.tint(Color.Gray)
+                                    size = 40
                                 )
+                                Spacer(modifier = Modifier.size(8.dp))
                                 Column {
                                     Text(p.name, fontSize = 16.sp)
                                     Text(

@@ -26,7 +26,8 @@ class TracksRepositoryImpl(
                     id = (it.trackName + it.artistName).hashCode().toLong(),
                     trackName = it.trackName,
                     artistName = it.artistName,
-                    trackTime = trackTime
+                    trackTime = trackTime,
+                    artworkUrl = it.artworkUrl100
                 )
             }
         } else {
