@@ -3,6 +3,7 @@ package com.example.playlistmaker.ui.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.playlistmaker.domain.SearchHistoryRepository
 import com.example.playlistmaker.domain.TracksRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -13,10 +14,15 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 
 class SearchViewModel(
-    private val tracksRepository: TracksRepository
+    private val tracksRepository: TracksRepository,
+    private val historyRepository: SearchHistoryRepository
 ) : ViewModel() {
     private val _searchScreenState = MutableStateFlow<SearchState>(SearchState.Initial)
     val searchScreenState = _searchScreenState.asStateFlow()
+
+    // Список последних запросов пользователя — показывается, когда строка поиска пуста.
+    private val _historyState = MutableStateFlow<List<String>>(emptyList())
+    val historyState = _historyState.asStateFlow()
 
     // Запоминаем последний запрос, чтобы кнопка «Обновить» знала, что повторить.
     private var lastQuery: String = ""
@@ -25,10 +31,21 @@ class SearchViewModel(
     // чтобы старые ответы не перезаписывали актуальный результат.
     private var searchJob: Job? = null
 
+    init {
+        loadHistory()
+    }
+
+    fun loadHistory() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _historyState.update { historyRepository.getHistory() }
+        }
+    }
+
     fun clearSearch() {
         searchJob?.cancel()
         lastQuery = ""
         _searchScreenState.update { SearchState.Initial }
+        loadHistory()
     }
 
     fun search(whatSearch: String) {
@@ -53,12 +70,30 @@ class SearchViewModel(
         }
     }
 
+    /**
+     * Сохраняем запрос в историю — вызываем, когда пользователь "подтвердил"
+     * запрос: например, кликнул по результату.
+     */
+    fun saveQueryToHistory(query: String) {
+        if (query.isBlank()) return
+        historyRepository.addQuery(query.trim())
+        loadHistory()
+    }
+
+    fun clearHistory() {
+        historyRepository.clear()
+        loadHistory()
+    }
+
     companion object {
         fun getViewModelFactory(): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return SearchViewModel(Creator.getTracksRepository()) as T
+                    return SearchViewModel(
+                        Creator.getTracksRepository(),
+                        Creator.getSearchHistoryRepository()
+                    ) as T
                 }
             }
     }

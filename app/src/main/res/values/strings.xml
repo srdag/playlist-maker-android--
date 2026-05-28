@@ -37,4 +37,6 @@
     <string name="tracks_count">треков</string>
     <string name="minutes_short">мин</string>
     <string name="playlist_is_empty">В плейлисте пока нет треков</string>
+    <string name="search_history_title">Вы искали</string>
+    <string name="clear_history">Очистить историю</string>
 </resources>

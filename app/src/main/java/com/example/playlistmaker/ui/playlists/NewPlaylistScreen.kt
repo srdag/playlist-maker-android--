@@ -30,7 +30,7 @@ import com.example.playlistmaker.R
 fun NewPlaylistScreen(
     viewModel: PlaylistsViewModel,
     onSaved: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }

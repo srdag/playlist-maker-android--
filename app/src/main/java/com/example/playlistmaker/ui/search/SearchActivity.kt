@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -54,9 +56,10 @@ import com.example.playlistmaker.data.network.Track
 fun FinderScreen(
     viewModel: SearchViewModel,
     onArrowBackClicked: () -> Unit,
-    onTrackClick: (Track) -> Unit = {}
+    onTrackClick: (Track) -> Unit = {},
 ) {
     val screenState by viewModel.searchScreenState.collectAsState()
+    val history by viewModel.historyState.collectAsState()
     var text by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -100,11 +103,13 @@ fun FinderScreen(
                 },
                 trailingIcon = {
                     if (text.isNotEmpty()) {
-                        IconButton(onClick = {
-                            text = ""
-                            viewModel.clearSearch()
-                            keyboardController?.hide()
-                        }) {
+                        IconButton(
+                            onClick = {
+                                text = ""
+                                viewModel.clearSearch()
+                                keyboardController?.hide()
+                            }
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
                                 contentDescription = stringResource(R.string.clear_search)
@@ -120,7 +125,19 @@ fun FinderScreen(
 
             when (val state = screenState) {
                 is SearchState.Initial -> {
-                    EmptyHint(message = stringResource(R.string.enter_search_string))
+                    // Когда строка поиска пуста — показываем историю запросов (если она есть).
+                    if (history.isNotEmpty()) {
+                        HistoryList(
+                            history = history,
+                            onHistoryItemClick = { query ->
+                                text = query
+                                viewModel.search(query)
+                            },
+                            onClearHistory = { viewModel.clearHistory() }
+                        )
+                    } else {
+                        EmptyHint(message = stringResource(R.string.enter_search_string))
+                    }
                 }
 
                 is SearchState.Searching -> {
@@ -142,9 +159,11 @@ fun FinderScreen(
                         LazyColumn(
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            items(state.list.size) { index ->
-                                TrackListItem(track = state.list[index]) {
-                                    onTrackClick(state.list[index])
+                            items(state.list) { track ->
+                                TrackListItem(track = track) {
+                                    // Сохраняем запрос в историю при выборе результата.
+                                    viewModel.saveQueryToHistory(text)
+                                    onTrackClick(track)
                                 }
                                 HorizontalDivider(thickness = 0.5.dp)
                             }
@@ -161,6 +180,53 @@ fun FinderScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun HistoryList(
+    history: List<String>,
+    onHistoryItemClick: (String) -> Unit,
+    onClearHistory: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text(
+            text = stringResource(R.string.search_history_title),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        )
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            items(history) { query ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onHistoryItemClick(query) }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Search,
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.size(12.dp))
+                    Text(text = query)
+                }
+                HorizontalDivider(thickness = 0.5.dp)
+            }
+        }
+        OutlinedButton(
+            onClick = onClearHistory,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(stringResource(R.string.clear_history))
         }
     }
 }
@@ -203,7 +269,7 @@ private fun Placeholder(
                 color = Color.Gray,
                 textAlign = TextAlign.Center
             )
-            if (actionText != null && onAction != null) {
+            if ((actionText != null) && (onAction != null)) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(onClick = onAction) {
                     Text(actionText)
@@ -269,8 +335,8 @@ fun TrackArtwork(
                 model = artworkUrl,
                 contentDescription = contentDescription,
                 contentScale = ContentScale.Crop,
-                loading = { ArtworkPlaceholder(size = size) },
-                error = { ArtworkPlaceholder(size = size) },
+                loading = { _ -> ArtworkPlaceholder(size = size) },
+                error = { _ -> ArtworkPlaceholder(size = size) },
                 modifier = Modifier.size(size.dp)
             )
         }

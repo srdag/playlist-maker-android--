@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -39,10 +40,10 @@ fun PlaylistListItem(playlist: Playlist, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = { onClick.invoke() })
+            .clickable { onClick.invoke() }
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Image(
             modifier = Modifier
@@ -106,9 +107,9 @@ fun PlaylistsScreen(
                     .padding(top = 4.dp, start = 8.dp, end = 8.dp),
             ) {
                 LazyColumn(modifier = modifier.fillMaxSize()) {
-                    items(playlists.size) { index ->
-                        PlaylistListItem(playlist = playlists[index]) {
-                            navigateToPlaylist(playlists[index].id)
+                    items(playlists) { playlist ->
+                        PlaylistListItem(playlist = playlist) {
+                            navigateToPlaylist(playlist.id)
                         }
                         HorizontalDivider(thickness = 0.5.dp)
                     }

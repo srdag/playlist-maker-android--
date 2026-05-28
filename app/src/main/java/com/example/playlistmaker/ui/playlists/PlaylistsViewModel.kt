@@ -47,7 +47,7 @@ class PlaylistsViewModel(
 
     fun deletePlaylist(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            tracksRepository.deleteTracksByPlaylistId(id)
+            // deletePlaylistById внутри сам чистит треки, привязанные к плейлисту.
             playlistsRepository.deletePlaylistById(id)
         }
     }
