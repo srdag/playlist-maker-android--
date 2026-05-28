@@ -44,6 +44,8 @@
     <string name="select_image">Выбрать изображение</string>
     <string name="permission_required">Для выбора обложки необходимо разрешение на доступ к файлам</string>
     <string name="delete_playlist">Удалить плейлист</string>
+    <string name="share_playlist">Поделиться</string>
+    <string name="edit_information">Редактировать информацию</string>
     <string name="delete_playlist_confirmation">Вы уверены, что хотите удалить плейлист «%s»?</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>

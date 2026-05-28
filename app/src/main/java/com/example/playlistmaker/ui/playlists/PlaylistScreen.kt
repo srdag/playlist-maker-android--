@@ -14,38 +14,46 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.data.network.Track
 import com.example.playlistmaker.ui.search.TrackListItem
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,17 +68,21 @@ fun PlaylistScreen(
     val playlist by playlistViewModel.playlist.collectAsState(null)
     val current = playlist
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
 
     if (showDeleteDialog && current != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.delete_playlist)) },
+            title = { Text("") }, // Пустой заголовок как на скрине
             text = {
                 Text(
-                    stringResource(
+                    text = stringResource(
                         R.string.delete_playlist_confirmation,
                         current.name
-                    )
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             },
             confirmButton = {
@@ -80,14 +92,61 @@ fun PlaylistScreen(
                         showDeleteDialog = false
                         navigateBack()
                     }
-                ) { Text(stringResource(R.string.yes)) }
+                ) {
+                    Text(
+                        text = stringResource(R.string.yes).uppercase(),
+                        color = Color(0xFF3772E7) // Синий цвет для "ДА"
+                    )
+                }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(stringResource(R.string.no))
+                    Text(
+                        text = stringResource(R.string.no).uppercase(),
+                        color = Color(0xFF3772E7) // Синий цвет для "НЕТ"
+                    )
                 }
             }
         )
+    }
+
+    if (showBottomSheet && current != null) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = {
+                Box(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .size(width = 40.dp, height = 4.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                            shape = MaterialTheme.shapes.extraLarge
+                        )
+                )
+            }
+        ) {
+            PlaylistMenuBottomSheet(
+                playlist = current,
+                onShareClick = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        showBottomSheet = false
+                    }
+                },
+                onEditClick = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        showBottomSheet = false
+                    }
+                },
+                onDeleteClick = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        showBottomSheet = false
+                        showDeleteDialog = true
+                    }
+                }
+            )
+        }
     }
 
     Box(
@@ -119,7 +178,7 @@ fun PlaylistScreen(
                     PlaylistHeader(
                         playlist = current,
                         onBack = navigateBack,
-                        onDelete = { showDeleteDialog = true }
+                        onMoreClick = { showBottomSheet = true }
                     )
                 }
                 items(current.tracks) { track ->
@@ -136,7 +195,7 @@ fun PlaylistScreen(
 private fun PlaylistHeader(
     playlist: com.example.playlistmaker.domain.model.Playlist,
     onBack: () -> Unit,
-    onDelete: () -> Unit
+    onMoreClick: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         // Большая квадратная обложка во всю ширину экрана.
@@ -172,7 +231,7 @@ private fun PlaylistHeader(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.back),
-                    tint = androidx.compose.ui.graphics.Color.White
+                    tint = Color.White
                 )
             }
         }
@@ -199,23 +258,15 @@ private fun PlaylistHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
-            // Kebab-меню и удаление.
+            // Kebab-меню.
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = {}) {
+                IconButton(onClick = onMoreClick) {
                     Icon(
                         imageVector = Icons.Filled.MoreVert,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = stringResource(R.string.delete_playlist),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -240,4 +291,102 @@ private fun playlistMeta(tracks: List<Track>): String {
     val minutesWord = stringResource(R.string.minutes_word)
     val tracksWord = stringResource(R.string.tracks_word)
     return "$totalMinutes $minutesWord · ${tracks.size} $tracksWord"
+}
+
+@Composable
+private fun PlaylistMenuBottomSheet(
+    playlist: com.example.playlistmaker.domain.model.Playlist,
+    onShareClick: () -> Unit,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
+        // Шапка в BottomSheet: маленькая обложка + инфо.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(45.dp)
+                    .clip(MaterialTheme.shapes.extraSmall)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                if (!playlist.coverImageUri.isNullOrBlank()) {
+                    AsyncImage(
+                        model = Uri.parse(playlist.coverImageUri),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_image_placeholder),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .align(Alignment.Center),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = playlist.name,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "${playlist.tracks.size} ${stringResource(R.string.tracks_word)}",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Пункты меню.
+        BottomSheetMenuItem(
+            text = stringResource(R.string.share_playlist),
+            onClick = onShareClick
+        )
+        BottomSheetMenuItem(
+            text = stringResource(R.string.edit_information),
+            onClick = onEditClick
+        )
+        BottomSheetMenuItem(
+            text = stringResource(R.string.delete_playlist),
+            onClick = onDeleteClick
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun BottomSheetMenuItem(
+    text: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+    ) {
+        Text(
+            text = text,
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
 }
