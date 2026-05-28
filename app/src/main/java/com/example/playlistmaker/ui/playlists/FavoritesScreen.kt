@@ -15,13 +15,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,6 +47,30 @@ fun FavoritesScreen(
     onTrackClick: (Track) -> Unit
 ) {
     val favorites by viewModel.favoriteList.collectAsState(emptyList())
+    var trackToDelete by remember { mutableStateOf<Track?>(null) }
+
+    if (trackToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { trackToDelete = null },
+            title = { Text(stringResource(R.string.delete_track_title)) },
+            text = { Text(stringResource(R.string.delete_track_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        trackToDelete?.let { viewModel.toggleFavorite(it, false) }
+                        trackToDelete = null
+                    }
+                ) {
+                    Text(text = stringResource(R.string.yes).uppercase(), color = Color(0xFF3772E7))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { trackToDelete = null }) {
+                    Text(text = stringResource(R.string.no).uppercase(), color = Color(0xFF3772E7))
+                }
+            }
+        )
+    }
 
     Box(
         modifier = Modifier
@@ -101,9 +130,11 @@ fun FavoritesScreen(
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(favorites) { track ->
-                        TrackListItem(track = track) {
-                            onTrackClick(track)
-                        }
+                        TrackListItem(
+                            track = track,
+                            onLongClick = { trackToDelete = track },
+                            onClick = { onTrackClick(track) }
+                        )
                     }
                 }
             }

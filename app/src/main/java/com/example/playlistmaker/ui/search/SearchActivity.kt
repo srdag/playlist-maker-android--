@@ -1,7 +1,9 @@
 package com.example.playlistmaker.ui.search
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -332,12 +334,20 @@ private fun Placeholder(
  * Элемент списка треков: маленькая обложка слева, название и "artist · time" в две строки,
  * стрелочка-chevron справа. Соответствует макетам.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TrackListItem(track: Track, onClick: () -> Unit = {}) {
+fun TrackListItem(
+    track: Track,
+    onLongClick: () -> Unit = {},
+    onClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
