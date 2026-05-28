@@ -1,9 +1,11 @@
 package com.example.playlistmaker.ui.playlists
 
 import android.net.Uri
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,13 +20,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,12 +45,20 @@ import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.domain.model.Playlist
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PlaylistListItem(playlist: Playlist, onClick: () -> Unit) {
+fun PlaylistListItem(
+    playlist: Playlist,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick.invoke() }
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -85,6 +100,30 @@ fun PlaylistsScreen(
     navigateBack: () -> Unit
 ) {
     val playlists by playlistsViewModel.playlists.collectAsState(emptyList())
+    var playlistToDelete by remember { mutableStateOf<Playlist?>(null) }
+
+    if (playlistToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { playlistToDelete = null },
+            title = { Text(stringResource(R.string.delete_playlist)) },
+            text = { Text(stringResource(R.string.delete_playlist_confirmation, playlistToDelete?.name.orEmpty())) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        playlistToDelete?.id?.let { playlistsViewModel.deletePlaylist(it) }
+                        playlistToDelete = null
+                    }
+                ) {
+                    Text(stringResource(R.string.yes))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { playlistToDelete = null }) {
+                    Text(stringResource(R.string.no))
+                }
+            }
+        )
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -113,16 +152,22 @@ fun PlaylistsScreen(
                 )
             }
 
-            Column(
+                Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 4.dp, start = 8.dp, end = 8.dp),
             ) {
                 LazyColumn(modifier = modifier.fillMaxSize()) {
                     items(playlists) { playlist ->
-                        PlaylistListItem(playlist = playlist) {
-                            navigateToPlaylist(playlist.id)
-                        }
+                        PlaylistListItem(
+                            playlist = playlist,
+                            onClick = {
+                                navigateToPlaylist(playlist.id)
+                            },
+                            onLongClick = {
+                                playlistToDelete = playlist
+                            }
+                        )
                         HorizontalDivider(thickness = 0.5.dp)
                     }
                 }
