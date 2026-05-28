@@ -1,5 +1,7 @@
 package com.example.playlistmaker.ui.track
 
+import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -37,10 +40,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.data.network.Track
 import com.example.playlistmaker.ui.playlists.PlaylistsViewModel
@@ -196,8 +203,7 @@ fun TrackDetailsScreen(
                     }
                 } else {
                     LazyColumn {
-                        items(playlists.size) { idx ->
-                            val p = playlists[idx]
+                        items(playlists) { p ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -213,11 +219,23 @@ fun TrackDetailsScreen(
                                     .padding(vertical = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                TrackArtwork(
-                                    artworkUrl = null,
-                                    contentDescription = p.name,
-                                    size = 40
-                                )
+                                Box(modifier = Modifier.size(40.dp)) {
+                                    if (p.coverImageUri != null) {
+                                        AsyncImage(
+                                            model = Uri.parse(p.coverImageUri),
+                                            contentDescription = p.name,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        Image(
+                                            modifier = Modifier.fillMaxSize(),
+                                            painter = painterResource(id = R.drawable.ic_music),
+                                            contentDescription = p.name,
+                                            colorFilter = ColorFilter.tint(Color.Gray)
+                                        )
+                                    }
+                                }
                                 Spacer(modifier = Modifier.size(8.dp))
                                 Column {
                                     Text(p.name, fontSize = 16.sp)

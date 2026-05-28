@@ -10,7 +10,10 @@ import com.example.playlistmaker.domain.model.Playlist
 import com.example.playlistmaker.ui.search.Creator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class PlaylistsViewModel(
@@ -21,9 +24,16 @@ class PlaylistsViewModel(
     val playlists: Flow<List<Playlist>> = playlistsRepository.getAllPlaylists()
     val favoriteList: Flow<List<Track>> = tracksRepository.getFavoriteTracks()
 
+    private val _coverImageUri = MutableStateFlow<String?>(null)
+    val coverImageUri = _coverImageUri.asStateFlow()
+
+    fun setCoverImageUri(uri: String?) {
+        _coverImageUri.update { uri }
+    }
+
     fun createNewPlayList(namePlaylist: String, description: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            playlistsRepository.addNewPlaylist(namePlaylist, description)
+            playlistsRepository.addNewPlaylist(namePlaylist, description, _coverImageUri.value)
         }
     }
 

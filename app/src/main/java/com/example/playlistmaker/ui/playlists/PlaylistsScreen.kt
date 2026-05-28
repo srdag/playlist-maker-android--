@@ -1,5 +1,6 @@
 package com.example.playlistmaker.ui.playlists
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,10 +29,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.domain.model.Playlist
 
@@ -45,14 +48,23 @@ fun PlaylistListItem(playlist: Playlist, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Image(
-            modifier = Modifier
-                .size(48.dp)
-                .padding(end = 8.dp),
-            painter = painterResource(id = R.drawable.ic_music),
-            contentDescription = playlist.name,
-            colorFilter = ColorFilter.tint(Color.Gray)
-        )
+        Box(modifier = Modifier.size(48.dp)) {
+            if (playlist.coverImageUri != null) {
+                AsyncImage(
+                    model = Uri.parse(playlist.coverImageUri),
+                    contentDescription = playlist.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    modifier = Modifier.fillMaxSize(),
+                    painter = painterResource(id = R.drawable.ic_music),
+                    contentDescription = playlist.name,
+                    colorFilter = ColorFilter.tint(Color.Gray)
+                )
+            }
+        }
         Column(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start

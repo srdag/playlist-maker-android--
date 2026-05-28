@@ -2,6 +2,7 @@
     <string name="app_name">PlaylistMaker</string>
     <string name="header">PlayList maker</string>
     <string name="favourite">Избранное</string>
+    <string name="favourite_tracks">Избранные треки</string>
     <string name="Playlists">Плейлисты</string>
     <string name="Search">Поиск</string>
     <string name="settings">Настройки</string>
@@ -39,4 +40,7 @@
     <string name="playlist_is_empty">В плейлисте пока нет треков</string>
     <string name="search_history_title">Вы искали</string>
     <string name="clear_history">Очистить историю</string>
+    <string name="playlist_cover">Обложка плейлиста</string>
+    <string name="select_image">Выбрать изображение</string>
+    <string name="permission_required">Для выбора обложки необходимо разрешение на доступ к файлам</string>
 </resources>

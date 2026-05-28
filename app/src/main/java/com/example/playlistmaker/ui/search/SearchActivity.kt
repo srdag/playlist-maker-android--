@@ -1,6 +1,8 @@
 package com.example.playlistmaker.ui.search
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -279,12 +282,20 @@ private fun Placeholder(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TrackListItem(track: Track, onClick: () -> Unit = {}) {
+fun TrackListItem(
+    track: Track,
+    onLongClick: (() -> Unit)? = null,
+    onClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -304,7 +315,15 @@ fun TrackListItem(track: Track, onClick: () -> Unit = {}) {
         }
         Text(
             text = track.trackTime,
-            modifier = Modifier.padding(start = 8.dp)
+            modifier = Modifier.padding(start = 8.dp),
+            fontSize = 12.sp,
+            color = Color.Gray
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = Color.LightGray,
+            modifier = Modifier.size(16.dp)
         )
     }
 }

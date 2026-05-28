@@ -1,5 +1,7 @@
 package com.example.playlistmaker.ui.playlists
 
+import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,10 +30,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.data.network.Track
 import com.example.playlistmaker.ui.search.TrackArtwork
@@ -78,7 +85,8 @@ fun PlaylistScreen(
                 PlaylistHeader(
                     name = current.name,
                     description = current.description,
-                    tracks = current.tracks
+                    tracks = current.tracks,
+                    coverImageUri = current.coverImageUri
                 )
                 HorizontalDivider(thickness = 0.5.dp)
                 if (current.tracks.isEmpty()) {
@@ -95,8 +103,7 @@ fun PlaylistScreen(
                     }
                 } else {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(current.tracks.size) { idx ->
-                            val track = current.tracks[idx]
+                        items(current.tracks) { track ->
                             TrackListItem(track = track) {
                                 navigateToTrack(track)
                             }
@@ -113,7 +120,8 @@ fun PlaylistScreen(
 private fun PlaylistHeader(
     name: String,
     description: String,
-    tracks: List<Track>
+    tracks: List<Track>,
+    coverImageUri: String?
 ) {
     Column(
         modifier = Modifier
@@ -121,13 +129,23 @@ private fun PlaylistHeader(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Большая обложка плейлиста — пока используем плейсхолдер,
-        // так как у плейлиста нет своей картинки.
-        TrackArtwork(
-            artworkUrl = tracks.firstOrNull { !it.artworkUrl.isNullOrBlank() }?.artworkUrl,
-            contentDescription = name,
-            size = 240
-        )
+        Box(modifier = Modifier.size(240.dp)) {
+            if (coverImageUri != null) {
+                AsyncImage(
+                    model = Uri.parse(coverImageUri),
+                    contentDescription = name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_music),
+                    contentDescription = name,
+                    colorFilter = ColorFilter.tint(Color.LightGray),
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = name,
