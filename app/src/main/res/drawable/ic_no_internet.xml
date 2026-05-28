@@ -1,0 +1,32 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Внешняя дуга Wi-Fi -->
+    <path
+        android:strokeColor="#3772E7"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:pathData="M15,42 A30,30 0 0,1 75,42" />
+
+    <!-- Средняя дуга -->
+    <path
+        android:strokeColor="#3772E7"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:pathData="M25,55 A20,20 0 0,1 65,55" />
+
+    <!-- Внутренняя дуга -->
+    <path
+        android:strokeColor="#3772E7"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:pathData="M35,67 A10,10 0 0,1 55,67" />
+
+    <!-- Точка -->
+    <path
+        android:fillColor="#3772E7"
+        android:pathData="M45,80 A5,5 0 1,1 45,90 A5,5 0 1,1 45,80 Z" />
+</vector>
