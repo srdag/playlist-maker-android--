@@ -19,6 +19,7 @@ import com.example.playlistmaker.ui.playlists.PlaylistsScreen
 import com.example.playlistmaker.ui.playlists.PlaylistsViewModel
 import com.example.playlistmaker.ui.search.FinderScreen
 import com.example.playlistmaker.ui.search.SearchViewModel
+import com.example.playlistmaker.ui.theme.ThemeViewModel
 import com.example.playlistmaker.ui.track.TrackDetailsScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -33,6 +34,7 @@ fun PlaylistHost(
     navController: NavHostController,
     searchViewModel: SearchViewModel,
     playlistsViewModel: PlaylistsViewModel,
+    themeViewModel: ThemeViewModel,
 ) {
     // Хелпер для безопасного формирования маршрута в Track details:
     // имена треков и артистов могут содержать пробелы, кириллицу, спецсимволы.
@@ -67,7 +69,10 @@ fun PlaylistHost(
         }
 
         composable(Screens.SettingsScreen.route) {
-            SettingsScreen { navController.popBackStack() }
+            SettingsScreen(
+                themeViewModel = themeViewModel,
+                onArrowBackClicked = { navController.popBackStack() }
+            )
         }
 
         composable(Screens.FinderScreen.route) {
@@ -85,8 +90,8 @@ fun PlaylistHost(
                 addNewPlaylist = {
                     navController.navigate(Screens.NewPlaylistScreen.route)
                 },
-                navigateToPlaylist = { playlistId ->
-                    navController.navigate("playlist_screen/$playlistId")
+                navigateToPlaylist = { index ->
+                    navController.navigate("playlist_screen/$index")
                 },
                 navigateBack = { navController.popBackStack() }
             )
@@ -111,18 +116,20 @@ fun PlaylistHost(
         composable(
             route = Screens.PlaylistScreen.route,
             arguments = listOf(
-                navArgument("playlistId") { type = NavType.LongType }
+                navArgument("index") { type = NavType.IntType }
             )
         ) { backStackEntry ->
-            val playlistId = backStackEntry.arguments?.getLong("playlistId") ?: 0L
+            val index = backStackEntry.arguments?.getInt("index") ?: 0
             val viewModel: PlaylistViewModel = viewModel(
-                factory = PlaylistViewModel.getViewModelFactory(playlistId)
+                factory = PlaylistViewModel.getViewModelFactory(index.toLong())
             )
             PlaylistScreen(
                 modifier = Modifier,
-                viewModel = viewModel,
+                playlistViewModel = viewModel,
+                index = index,
                 navigateToTrack = { track -> navigateToTrack(track) },
-                navigateBack = { navController.popBackStack() }
+                navigateBack = { navController.popBackStack() },
+                onClick = { /* действие по клику, если нужно */ }
             )
         }
 

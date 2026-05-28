@@ -4,12 +4,12 @@ import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,13 +17,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,16 +36,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.domain.model.Playlist
+import com.example.playlistmaker.ui.theme.BrandBlue
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -55,15 +59,16 @@ fun PlaylistListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            )
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(modifier = Modifier.size(48.dp)) {
+        Box(
+            modifier = Modifier
+                .size(45.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ) {
             if (playlist.coverImageUri != null) {
                 AsyncImage(
                     model = Uri.parse(playlist.coverImageUri),
@@ -73,20 +78,28 @@ fun PlaylistListItem(
                 )
             } else {
                 Image(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp),
                     painter = painterResource(id = R.drawable.ic_music),
                     contentDescription = playlist.name,
-                    colorFilter = ColorFilter.tint(Color.Gray)
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
                 )
             }
         }
-        Column(
-            modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.Start
-        ) {
-            Text(playlist.name, fontSize = 16.sp)
-            val text = "${playlist.tracks.size} tracks"
-            Text(text, fontSize = 11.sp, color = Color.Gray)
+        Spacer(modifier = Modifier.size(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = playlist.name,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "${playlist.tracks.size} ${stringResource(R.string.tracks_word)}",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -106,16 +119,21 @@ fun PlaylistsScreen(
         AlertDialog(
             onDismissRequest = { playlistToDelete = null },
             title = { Text(stringResource(R.string.delete_playlist)) },
-            text = { Text(stringResource(R.string.delete_playlist_confirmation, playlistToDelete?.name.orEmpty())) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.delete_playlist_confirmation,
+                        playlistToDelete?.name.orEmpty()
+                    )
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
                         playlistToDelete?.id?.let { playlistsViewModel.deletePlaylist(it) }
                         playlistToDelete = null
                     }
-                ) {
-                    Text(stringResource(R.string.yes))
-                }
+                ) { Text(stringResource(R.string.yes)) }
             },
             dismissButton = {
                 TextButton(onClick = { playlistToDelete = null }) {
@@ -125,61 +143,55 @@ fun PlaylistsScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 8.dp)
-        ) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Шапка как у остальных экранов: маленькая стрелка + крупный заголовок.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.LightGray.copy(alpha = 0.7f))
-                    .padding(8.dp),
+                    .padding(start = 4.dp, top = 24.dp, end = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clickable { navigateBack() },
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.search_icon)
-                )
+                IconButton(onClick = navigateBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back),
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
                 Text(
                     text = stringResource(R.string.Playlists),
-                    fontSize = 28.sp,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
 
-                Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp, start = 8.dp, end = 8.dp),
-            ) {
-                LazyColumn(modifier = modifier.fillMaxSize()) {
-                    items(playlists) { playlist ->
-                        PlaylistListItem(
-                            playlist = playlist,
-                            onClick = {
-                                navigateToPlaylist(playlist.id)
-                            },
-                            onLongClick = {
-                                playlistToDelete = playlist
-                            }
-                        )
-                        HorizontalDivider(thickness = 0.5.dp)
-                    }
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(playlists) { playlist ->
+                    PlaylistListItem(
+                        playlist = playlist,
+                        onClick = { navigateToPlaylist(playlist.id) },
+                        onLongClick = { playlistToDelete = playlist }
+                    )
                 }
             }
         }
+
+        // FAB как на макете — голубой, круглый, плюс.
         FloatingActionButton(
             modifier = Modifier
-                .padding(32.dp)
-                .align(Alignment.BottomEnd),
-            onClick = { addNewPlaylist() },
-            containerColor = Color.Gray,
-            contentColor = Color.White,
+                .padding(24.dp)
+                .align(Alignment.BottomEnd)
+                .size(56.dp),
+            onClick = addNewPlaylist,
+            containerColor = BrandBlue,
+            contentColor = androidx.compose.ui.graphics.Color.White,
             shape = CircleShape
         ) {
             Icon(

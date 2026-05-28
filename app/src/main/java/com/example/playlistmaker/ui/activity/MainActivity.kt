@@ -7,19 +7,31 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -31,6 +43,9 @@ import com.example.playlistmaker.R
 import com.example.playlistmaker.navigation.PlaylistHost
 import com.example.playlistmaker.ui.playlists.PlaylistsViewModel
 import com.example.playlistmaker.ui.search.SearchViewModel
+import com.example.playlistmaker.ui.theme.BrandBlue
+import com.example.playlistmaker.ui.theme.PlaylistMakerTheme
+import com.example.playlistmaker.ui.theme.ThemeViewModel
 
 class MainActivity : ComponentActivity() {
     private val searchViewModel by viewModels<SearchViewModel> {
@@ -39,13 +54,24 @@ class MainActivity : ComponentActivity() {
     private val playlistsViewModel by viewModels<PlaylistsViewModel> {
         PlaylistsViewModel.getViewModelFactory()
     }
+    // Activity-уровневая ViewModel темы — переживает рекомпозицию и
+    // одна на всё приложение, поэтому Settings и Theme видят одинаковое значение.
+    private val themeViewModel by viewModels<ThemeViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val navController = rememberNavController()
-            PlaylistHost(navController, searchViewModel, playlistsViewModel)
+            val darkTheme by themeViewModel.darkTheme.collectAsState()
+            PlaylistMakerTheme(darkTheme = darkTheme) {
+                val navController = rememberNavController()
+                PlaylistHost(
+                    navController = navController,
+                    searchViewModel = searchViewModel,
+                    playlistsViewModel = playlistsViewModel,
+                    themeViewModel = themeViewModel
+                )
+            }
         }
     }
 }
@@ -60,33 +86,34 @@ private fun ScreenButton(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 20.dp, vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Color.Black
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(22.dp)
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.size(16.dp))
 
             Text(
                 text = text,
-                color = Color.Black,
-                fontSize = 16.sp
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
             )
         }
 
         Icon(
-            imageVector = Icons.Default.KeyboardArrowRight,
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
-            tint = Color.Gray
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -98,55 +125,76 @@ fun MainScreen(
     onSearchButtonClick: () -> Unit = {},
     onSettingsButtonClick: () -> Unit = {},
 ) {
-
-    Column(
+    // Контейнер цветом фона темы — между светлой и тёмной он почти не отличается,
+    // но позволяет красиво "проступать" под скруглённый верх карточки.
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Blue)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-
-        Text(
-            text = stringResource(R.string.header),
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 24.dp, start = 16.dp)
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Color.White,
-                    RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Хедер: всегда голубой с белым текстом, независимо от темы.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(BrandBlue)
+                    .padding(start = 20.dp, top = 56.dp, bottom = 24.dp, end = 20.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.header),
+                    color = androidx.compose.ui.graphics.Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
                 )
-        ) {
+            }
 
-            ScreenButton(
-                text = stringResource(R.string.Search),
-                icon = Icons.Default.Search,
-                onClick = onSearchButtonClick
-            )
+            // Поднимающаяся карточка с пунктами меню.
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                    )
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
 
-            ScreenButton(
-                text = stringResource(R.string.Playlists),
-                icon = ImageVector.vectorResource(id = R.drawable.playlist),
-                onClick = onPlaylistsButtonClick
-            )
-
-            ScreenButton(
-                text = stringResource(R.string.favourite),
-                icon = Icons.Default.FavoriteBorder,
-                onClick = onFavouriteButtonClick
-            )
-
-            ScreenButton(
-                text = stringResource(R.string.settings),
-                icon = Icons.Default.Settings,
-                onClick = onSettingsButtonClick
-            )
+                ScreenButton(
+                    text = stringResource(R.string.Search),
+                    icon = Icons.Default.Search,
+                    onClick = onSearchButtonClick
+                )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outline,
+                    thickness = 0.5.dp,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+                ScreenButton(
+                    text = stringResource(R.string.Playlists),
+                    icon = ImageVector.vectorResource(id = R.drawable.playlist),
+                    onClick = onPlaylistsButtonClick
+                )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outline,
+                    thickness = 0.5.dp,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+                ScreenButton(
+                    text = stringResource(R.string.favourite),
+                    icon = Icons.Default.FavoriteBorder,
+                    onClick = onFavouriteButtonClick
+                )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outline,
+                    thickness = 0.5.dp,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+                ScreenButton(
+                    text = stringResource(R.string.settings),
+                    icon = Icons.Default.Settings,
+                    onClick = onSettingsButtonClick
+                )
+            }
         }
     }
 }

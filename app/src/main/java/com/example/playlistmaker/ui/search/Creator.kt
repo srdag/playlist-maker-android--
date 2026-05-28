@@ -34,7 +34,12 @@ object Creator {
             context.applicationContext,
             AppDatabase::class.java,
             "playlist-maker.db"
-        ).build()
+        )
+            // На этапе разработки схема ещё не финализирована (добавлялись поля
+            // вроде coverImageUri). Чтобы не писать миграции на каждое
+            // изменение, разрешаем пересоздание базы при несовпадении схемы.
+            .fallbackToDestructiveMigration()
+            .build()
 
         historyPreferences = SearchHistoryPreferences(
             dataStore = context.applicationContext.searchHistoryDataStore

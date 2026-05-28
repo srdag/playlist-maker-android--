@@ -2,7 +2,7 @@
     <string name="app_name">PlaylistMaker</string>
     <string name="header">PlayList maker</string>
     <string name="favourite">Избранное</string>
-    <string name="favourite_tracks">Избранные треки</string>
+    <string name="favorite_tracks">Избранные треки</string>
     <string name="Playlists">Плейлисты</string>
     <string name="Search">Поиск</string>
     <string name="settings">Настройки</string>
@@ -29,7 +29,7 @@
     <string name="no_playlists">Плейлистов пока нет</string>
     <string name="no_favorites">Нет избранных треков</string>
     <string name="enter_search_string">Введите строку для поиска</string>
-    <string name="nothing_found">Ничего не найдено</string>
+    <string name="nothing_found">Ничего не нашлось</string>
     <string name="duration_label">Длительность</string>
     <string name="clear_search">Очистить поиск</string>
     <string name="server_error">Произошла ошибка сервера. Проверьте подключение к интернету</string>
@@ -47,4 +47,14 @@
     <string name="delete_playlist_confirmation">Вы уверены, что хотите удалить плейлист «%s»?</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
+    <string name="server_error_title">Проблемы со связью</string>
+    <string name="server_error_subtitle">Загрузка не удалась. Проверьте подключение к интернету</string>
+    <string name="nothing_found_title">Ничего не нашлось</string>
+    <string name="media_library_empty">Ваша медиатека пуста</string>
+    <string name="add_to_playlist_title">Добавить в плейлист</string>
+    <string name="create">Создать</string>
+    <string name="name_required">Название*</string>
+    <string name="description_optional">Описание</string>
+    <string name="tracks_word">треков</string>
+    <string name="minutes_word">минут</string>
 </resources>

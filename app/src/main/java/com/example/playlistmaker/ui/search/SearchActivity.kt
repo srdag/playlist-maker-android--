@@ -1,8 +1,7 @@
 package com.example.playlistmaker.ui.search
 
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,16 +21,17 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -66,28 +66,39 @@ fun FinderScreen(
     var text by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.Search)) },
-                navigationIcon = {
-                    IconButton(onClick = onArrowBackClicked) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Шапка: стрелка назад + заголовок «Поиск».
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 4.dp, top = 24.dp, end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onArrowBackClicked) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back),
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
-            )
-        }
-    ) { paddingValues ->
+                Text(
+                    text = stringResource(R.string.Search),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
 
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
-        ) {
-            OutlinedTextField(
+            Spacer(modifier = Modifier.size(8.dp))
+
+            // Скруглённое filled-поле поиска как на макете.
+            TextField(
                 value = text,
                 onValueChange = {
                     text = it
@@ -97,11 +108,17 @@ fun FinderScreen(
                         viewModel.clearSearch()
                     }
                 },
-                placeholder = { Text(stringResource(R.string.Search)) },
+                placeholder = {
+                    Text(
+                        text = stringResource(R.string.Search),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Filled.Search,
-                        contentDescription = stringResource(R.string.search_icon)
+                        contentDescription = stringResource(R.string.search_icon),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
                 trailingIcon = {
@@ -115,20 +132,33 @@ fun FinderScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
-                                contentDescription = stringResource(R.string.clear_search)
+                                contentDescription = stringResource(R.string.clear_search),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 },
                 singleLine = true,
+                shape = RoundedCornerShape(8.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    cursorColor = MaterialTheme.colorScheme.onSurface,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(horizontal = 16.dp)
             )
+
+            Spacer(modifier = Modifier.size(8.dp))
 
             when (val state = screenState) {
                 is SearchState.Initial -> {
-                    // Когда строка поиска пуста — показываем историю запросов (если она есть).
                     if (history.isNotEmpty()) {
                         HistoryList(
                             history = history,
@@ -139,7 +169,7 @@ fun FinderScreen(
                             onClearHistory = { viewModel.clearHistory() }
                         )
                     } else {
-                        EmptyHint(message = stringResource(R.string.enter_search_string))
+                        // На пустом дефолтном экране на макете ничего нет — оставляем чисто.
                     }
                 }
 
@@ -154,33 +184,23 @@ fun FinderScreen(
 
                 is SearchState.Success -> {
                     if (state.list.isEmpty()) {
-                        Placeholder(
-                            iconRes = R.drawable.ic_music,
-                            message = stringResource(R.string.nothing_found)
-                        )
+                        NothingFoundPlaceholder()
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize()
                         ) {
                             items(state.list) { track ->
                                 TrackListItem(track = track) {
-                                    // Сохраняем запрос в историю при выборе результата.
                                     viewModel.saveQueryToHistory(text)
                                     onTrackClick(track)
                                 }
-                                HorizontalDivider(thickness = 0.5.dp)
                             }
                         }
                     }
                 }
 
                 is SearchState.Fail -> {
-                    Placeholder(
-                        iconRes = R.drawable.ic_music,
-                        message = stringResource(R.string.server_error),
-                        actionText = stringResource(R.string.refresh),
-                        onAction = { viewModel.retry() }
-                    )
+                    ServerErrorPlaceholder(onRefresh = { viewModel.retry() })
                 }
             }
         }
@@ -194,40 +214,35 @@ private fun HistoryList(
     onClearHistory: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = stringResource(R.string.search_history_title),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-        )
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(history) { query ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onHistoryItemClick(query) }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = 20.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Search,
+                        painter = painterResource(id = R.drawable.ic_history),
                         contentDescription = null,
-                        tint = Color.Gray,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.size(12.dp))
-                    Text(text = query)
+                    Text(
+                        text = query,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 15.sp
+                    )
                 }
-                HorizontalDivider(thickness = 0.5.dp)
             }
         }
         OutlinedButton(
             onClick = onClearHistory,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(20.dp)
         ) {
             Text(stringResource(R.string.clear_history))
         }
@@ -235,21 +250,34 @@ private fun HistoryList(
 }
 
 @Composable
-private fun EmptyHint(message: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(message, color = Color.Gray)
-    }
+private fun NothingFoundPlaceholder() {
+    Placeholder(
+        iconRes = R.drawable.ic_nothing_found,
+        message = stringResource(R.string.nothing_found),
+        subtitle = null,
+        actionText = null,
+        onAction = null
+    )
+}
+
+@Composable
+private fun ServerErrorPlaceholder(onRefresh: () -> Unit) {
+    Placeholder(
+        iconRes = R.drawable.ic_no_internet,
+        message = stringResource(R.string.server_error_title),
+        subtitle = stringResource(R.string.server_error_subtitle),
+        actionText = stringResource(R.string.refresh),
+        onAction = onRefresh
+    )
 }
 
 @Composable
 private fun Placeholder(
     iconRes: Int,
     message: String,
-    actionText: String? = null,
-    onAction: (() -> Unit)? = null
+    subtitle: String?,
+    actionText: String?,
+    onAction: (() -> Unit)?
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -257,24 +285,42 @@ private fun Placeholder(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(32.dp)
         ) {
             Icon(
-                modifier = Modifier.size(96.dp),
+                modifier = Modifier.size(120.dp),
                 painter = painterResource(id = iconRes),
                 contentDescription = null,
-                tint = Color.LightGray
+                tint = Color.Unspecified // используем оригинальные цвета внутри SVG
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = message,
-                fontSize = 16.sp,
-                color = Color.Gray,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
-            if ((actionText != null) && (onAction != null)) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = onAction) {
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = subtitle,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
+            if (actionText != null && onAction != null) {
+                Spacer(modifier = Modifier.height(20.dp))
+                Button(
+                    onClick = onAction,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
                     Text(actionText)
                 }
             }
@@ -282,56 +328,54 @@ private fun Placeholder(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+/**
+ * Элемент списка треков: маленькая обложка слева, название и "artist · time" в две строки,
+ * стрелочка-chevron справа. Соответствует макетам.
+ */
 @Composable
-fun TrackListItem(
-    track: Track,
-    onLongClick: (() -> Unit)? = null,
-    onClick: () -> Unit = {}
-) {
+fun TrackListItem(track: Track, onClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            )
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         TrackArtwork(
             artworkUrl = track.artworkUrl,
-            contentDescription = "Обложка ${track.trackName}",
-            size = 48
+            contentDescription = track.trackName,
+            size = 44
         )
-        Spacer(modifier = Modifier.size(8.dp))
+        Spacer(modifier = Modifier.size(12.dp))
         Column(
-            modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.Start
+            modifier = Modifier.weight(1f)
         ) {
-            Text(track.trackName, fontWeight = FontWeight.Bold)
-            Text(track.artistName, fontSize = 12.sp, color = Color.Gray)
+            Text(
+                text = track.trackName,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1
+            )
+            Spacer(modifier = Modifier.size(2.dp))
+            Text(
+                text = "${track.artistName}  •  ${track.trackTime}",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 11.sp,
+                maxLines = 1
+            )
         }
-        Text(
-            text = track.trackTime,
-            modifier = Modifier.padding(start = 8.dp),
-            fontSize = 12.sp,
-            color = Color.Gray
-        )
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
-            tint = Color.LightGray,
-            modifier = Modifier.size(16.dp)
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
 
 /**
- * Универсальный компонент обложки.
- * Пока картинка не загружена — рисует плейсхолдер (нота).
- * Если URL отсутствует или загрузка упала — также показывает плейсхолдер.
+ * Универсальный компонент обложки. Скруглённая, с плейсхолдером-нотой
+ * пока картинка не загружена / отсутствует.
  */
 @Composable
 fun TrackArtwork(
@@ -344,7 +388,8 @@ fun TrackArtwork(
     Box(
         modifier = modifier
             .size(size.dp)
-            .clip(shape),
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceVariant),
         contentAlignment = Alignment.Center
     ) {
         if (artworkUrl.isNullOrBlank()) {
@@ -354,8 +399,8 @@ fun TrackArtwork(
                 model = artworkUrl,
                 contentDescription = contentDescription,
                 contentScale = ContentScale.Crop,
-                loading = { _ -> ArtworkPlaceholder(size = size) },
-                error = { _ -> ArtworkPlaceholder(size = size) },
+                loading = { ArtworkPlaceholder(size = size) },
+                error = { ArtworkPlaceholder(size = size) },
                 modifier = Modifier.size(size.dp)
             )
         }
@@ -369,10 +414,10 @@ private fun ArtworkPlaceholder(size: Int) {
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            modifier = Modifier.size((size * 0.6f).dp),
+            modifier = Modifier.size((size * 0.55f).dp),
             painter = painterResource(id = R.drawable.ic_music),
             contentDescription = null,
-            tint = Color.Gray
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

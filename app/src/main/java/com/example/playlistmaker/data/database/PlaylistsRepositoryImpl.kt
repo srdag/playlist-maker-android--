@@ -2,6 +2,7 @@ package com.example.playlistmaker.data.database
 
 import com.example.playlistmaker.data.database.dao.TrackDao
 import com.example.playlistmaker.data.database.entity.PlaylistEntity
+import com.example.playlistmaker.data.database.entity.toDomain
 import com.example.playlistmaker.domain.PlaylistsRepository
 import com.example.playlistmaker.domain.model.Playlist
 import kotlinx.coroutines.flow.Flow
