@@ -16,7 +16,7 @@ import com.example.playlistmaker.domain.PlaylistsRepository
 import com.example.playlistmaker.domain.SearchHistoryRepository
 import com.example.playlistmaker.domain.TracksRepository
 
-// DataStore-инстанс на уровне Context — один на всё приложение.
+
 private val Context.searchHistoryDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "search_history"
 )
@@ -26,18 +26,16 @@ object Creator {
     private lateinit var appDatabase: AppDatabase
     private lateinit var historyPreferences: SearchHistoryPreferences
 
-    /**
-     * Вызывается из App.onCreate. После этого все getXxx-методы готовы к использованию.
-     */
+
     fun init(context: Context) {
         appDatabase = Room.databaseBuilder(
             context.applicationContext,
             AppDatabase::class.java,
             "playlist-maker.db"
         )
-            // На этапе разработки схема ещё не финализирована (добавлялись поля
-            // вроде coverImageUri). Чтобы не писать миграции на каждое
-            // изменение, разрешаем пересоздание базы при несовпадении схемы.
+
+
+
             .fallbackToDestructiveMigration()
             .build()
 
@@ -61,3 +59,6 @@ object Creator {
         return SearchHistoryRepositoryImpl(historyPreferences)
     }
 }
+
+
+

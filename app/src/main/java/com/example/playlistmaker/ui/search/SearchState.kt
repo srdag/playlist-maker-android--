@@ -1,10 +1,16 @@
 package com.example.playlistmaker.ui.search
 
-import com.example.playlistmaker.data.network.Track
+import androidx.compose.runtime.Immutable
+import com.example.playlistmaker.domain.model.Track
+import kotlinx.collections.immutable.ImmutableList
 
+
+@Immutable
 sealed class SearchState {
-    object Initial: SearchState() // Первоначальное cостояние экрана
-    object Searching: SearchState() // Cостояние экрана при начале поиска
-    data class Success(val list: List<Track>): SearchState() // Cостояние экрана при успешном завершении поиска
-    data class Fail(val error: String): SearchState() // Cостояние экрана, если при запросе к серверу произошла ошибка
+    data object Initial : SearchState() // Первоначальное состояние экрана
+    data object Searching : SearchState() // Состояние экрана при начале поиска
+    data class Success(val list: ImmutableList<Track>) : SearchState() // Успешный поиск
+    data class Fail(val error: String) : SearchState() // Ошибка запроса
 }
+
+

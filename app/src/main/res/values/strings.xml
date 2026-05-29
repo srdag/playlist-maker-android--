@@ -35,7 +35,6 @@
     <string name="server_error">Произошла ошибка сервера. Проверьте подключение к интернету</string>
     <string name="refresh">Обновить</string>
     <string name="back">Назад</string>
-    <string name="tracks_count">треков</string>
     <string name="minutes_short">мин</string>
     <string name="playlist_is_empty">В плейлисте пока нет треков</string>
     <string name="search_history_title">Вы искали</string>
@@ -59,6 +58,9 @@
     <string name="create">Создать</string>
     <string name="name_required">Название*</string>
     <string name="description_optional">Описание</string>
-    <string name="tracks_word">треков</string>
-    <string name="minutes_word">минут</string>
 </resources>
+
+
+
+
+

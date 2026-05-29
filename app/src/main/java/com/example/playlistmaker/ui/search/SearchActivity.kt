@@ -2,7 +2,6 @@ package com.example.playlistmaker.ui.search
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,7 +25,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,7 +33,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,9 +49,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
 import com.example.playlistmaker.R
-import com.example.playlistmaker.data.network.Track
+import com.example.playlistmaker.domain.model.Track
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,8 +61,8 @@ fun FinderScreen(
     onArrowBackClicked: () -> Unit,
     onTrackClick: (Track) -> Unit = {},
 ) {
-    val screenState by viewModel.searchScreenState.collectAsState()
-    val history by viewModel.historyState.collectAsState()
+    val screenState by viewModel.searchScreenState.collectAsStateWithLifecycle()
+    val history: List<String> by viewModel.historyState.collectAsStateWithLifecycle(initialValue = emptyList())
     var text by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -74,7 +72,7 @@ fun FinderScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Шапка: стрелка назад + заголовок «Поиск».
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -99,7 +97,7 @@ fun FinderScreen(
 
             Spacer(modifier = Modifier.size(8.dp))
 
-            // Скруглённое filled-поле поиска как на макете.
+
             TextField(
                 value = text,
                 onValueChange = {
@@ -170,8 +168,6 @@ fun FinderScreen(
                             },
                             onClearHistory = { viewModel.clearHistory() }
                         )
-                    } else {
-                        // На пустом дефолтном экране на макете ничего нет — оставляем чисто.
                     }
                 }
 
@@ -191,7 +187,10 @@ fun FinderScreen(
                         LazyColumn(
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            items(state.list) { track ->
+                            items(
+                                items = state.list as List<Track>,
+                                key = { t: Track -> t.id }
+                            ) { track ->
                                 TrackListItem(track = track) {
                                     viewModel.saveQueryToHistory(text)
                                     onTrackClick(track)
@@ -209,6 +208,7 @@ fun FinderScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun HistoryList(
     history: List<String>,
@@ -221,7 +221,7 @@ private fun HistoryList(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onHistoryItemClick(query) }
+                        .combinedClickable(onClick = { onHistoryItemClick(query) })
                         .padding(horizontal = 20.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -294,7 +294,7 @@ private fun Placeholder(
                 modifier = Modifier.size(120.dp),
                 painter = painterResource(id = iconRes),
                 contentDescription = null,
-                tint = Color.Unspecified // используем оригинальные цвета внутри SVG
+                tint = Color.Unspecified
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text(
@@ -330,10 +330,7 @@ private fun Placeholder(
     }
 }
 
-/**
- * Элемент списка треков: маленькая обложка слева, название и "artist · time" в две строки,
- * стрелочка-chevron справа. Соответствует макетам.
- */
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TrackListItem(
@@ -368,8 +365,13 @@ fun TrackListItem(
                 maxLines = 1
             )
             Spacer(modifier = Modifier.size(2.dp))
+
+
+            val subtitle = remember(track.artistName, track.trackTime) {
+                "${track.artistName}  •  ${track.trackTime}"
+            }
             Text(
-                text = "${track.artistName}  •  ${track.trackTime}",
+                text = subtitle,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 11.sp,
                 maxLines = 1
@@ -383,10 +385,7 @@ fun TrackListItem(
     }
 }
 
-/**
- * Универсальный компонент обложки. Скруглённая, с плейсхолдером-нотой
- * пока картинка не загружена / отсутствует.
- */
+
 @Composable
 fun TrackArtwork(
     artworkUrl: String?,
@@ -431,3 +430,6 @@ private fun ArtworkPlaceholder(size: Int) {
         )
     }
 }
+
+
+

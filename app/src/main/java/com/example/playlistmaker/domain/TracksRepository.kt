@@ -1,6 +1,6 @@
 package com.example.playlistmaker.domain
 
-import com.example.playlistmaker.data.network.Track
+import com.example.playlistmaker.domain.model.Track
 import kotlinx.coroutines.flow.Flow
 
 interface TracksRepository {
@@ -18,3 +18,6 @@ interface TracksRepository {
 
     suspend fun deleteTracksByPlaylistId(playlistId: Long)
 }
+
+
+

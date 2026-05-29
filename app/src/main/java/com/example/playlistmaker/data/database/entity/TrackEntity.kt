@@ -2,7 +2,7 @@ package com.example.playlistmaker.data.database.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.playlistmaker.data.network.Track
+import com.example.playlistmaker.domain.model.Track
 
 @Entity(tableName = "track")
 data class TrackEntity(
@@ -24,3 +24,6 @@ fun TrackEntity.toDomain() = Track(
     favorite = favorite,
     playlistId = playlistId
 )
+
+
+

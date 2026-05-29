@@ -22,11 +22,11 @@ interface PlaylistDao {
     @Query("SELECT * FROM playlist ORDER BY id ASC")
     fun getAllPlaylistsWithTracks(): Flow<List<PlaylistWithTracks>>
 
-    /**
-     * Возвращаем список, а не nullable-объект, потому что Flow<T?> с @Relation
-     * исторически работает нестабильно. На стороне репозитория берём firstOrNull().
-     */
+
     @Transaction
     @Query("SELECT * FROM playlist WHERE id = :id LIMIT 1")
     fun getPlaylistWithTracks(id: Long): Flow<List<PlaylistWithTracks>>
 }
+
+
+

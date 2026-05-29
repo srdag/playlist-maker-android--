@@ -10,3 +10,6 @@ data class PlaylistEntity(
     val description: String,
     val coverImageUri: String? = null
 )
+
+
+

@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,9 +35,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.playlistmaker.R
-import com.example.playlistmaker.data.network.Track
+import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.ui.search.TrackListItem
+import com.example.playlistmaker.ui.theme.BrandBlue
 
 @Composable
 fun FavoritesScreen(
@@ -46,10 +47,11 @@ fun FavoritesScreen(
     onBack: () -> Unit,
     onTrackClick: (Track) -> Unit
 ) {
-    val favorites by viewModel.favoriteList.collectAsState(emptyList())
+    val favorites by viewModel.favoriteList.collectAsStateWithLifecycle(initialValue = emptyList())
     var trackToDelete by remember { mutableStateOf<Track?>(null) }
 
     if (trackToDelete != null) {
+        val currentTrack = trackToDelete!!
         AlertDialog(
             onDismissRequest = { trackToDelete = null },
             title = { Text(stringResource(R.string.delete_track_title)) },
@@ -57,16 +59,16 @@ fun FavoritesScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        trackToDelete?.let { viewModel.toggleFavorite(it, false) }
+                        viewModel.toggleFavorite(currentTrack, isFavorite = false)
                         trackToDelete = null
                     }
                 ) {
-                    Text(text = stringResource(R.string.yes).uppercase(), color = Color(0xFF3772E7))
+                    Text(text = stringResource(R.string.yes).uppercase(), color = BrandBlue)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { trackToDelete = null }) {
-                    Text(text = stringResource(R.string.no).uppercase(), color = Color(0xFF3772E7))
+                    Text(text = stringResource(R.string.no).uppercase(), color = BrandBlue)
                 }
             }
         )
@@ -78,7 +80,7 @@ fun FavoritesScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Шапка: стрелка + крупный заголовок «Избранные треки».
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -141,3 +143,6 @@ fun FavoritesScreen(
         }
     }
 }
+
+
+

@@ -27,7 +27,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,7 +48,7 @@ fun SettingsScreen(
 ) {
 
     val context = LocalContext.current
-    val darkTheme by themeViewModel.darkTheme.collectAsState()
+    val darkTheme by themeViewModel.darkTheme.collectAsStateWithLifecycle()
 
     val emailUri = stringResource(R.string.mailto_dorogaada_yandex_ru)
     val agreementUrl = stringResource(R.string.https_praktikum_yandex_ru_offer)
@@ -62,7 +62,7 @@ fun SettingsScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Шапка: маленькая стрелка назад + крупный заголовок.
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -87,7 +87,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.size(8.dp))
 
-            // Тёмная тема — тоггл, который реально меняет состояние ThemeViewModel.
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -147,7 +147,7 @@ fun SettingsScreen(
                 try {
                     context.startActivity(intent)
                 } catch (e: Exception) {
-                    // нет приложения для отправки писем — тихо игнорируем
+
                 }
             }
             HorizontalDivider(
@@ -194,3 +194,6 @@ private fun SettingsItem(
         )
     }
 }
+
+
+

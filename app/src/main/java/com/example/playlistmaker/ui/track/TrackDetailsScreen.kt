@@ -1,7 +1,6 @@
 package com.example.playlistmaker.ui.track
 
 import android.net.Uri
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,15 +14,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,7 +35,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,18 +44,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import com.example.playlistmaker.R
-import com.example.playlistmaker.data.network.Track
+import com.example.playlistmaker.domain.model.Playlist
+import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.ui.playlists.PlaylistsViewModel
+import com.example.playlistmaker.ui.theme.BrandBlue
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,7 +73,7 @@ fun TrackDetailsScreen(
     viewModel: PlaylistsViewModel,
     onBack: () -> Unit
 ) {
-    val initialTrack = remember(trackName, artistName, trackTime, artworkUrl) {
+    val track = remember(trackName, artistName, trackTime, artworkUrl) {
         Track(
             id = (trackName + artistName).hashCode().toLong(),
             trackName = trackName,
@@ -77,43 +83,42 @@ fun TrackDetailsScreen(
         )
     }
 
-    var currentTrack by remember(initialTrack) { mutableStateOf(initialTrack) }
-    val playlists by viewModel.playlists.collectAsState(emptyList())
-    var showSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
-    val coroutineScope = rememberCoroutineScope()
+    var isFavorite by remember { mutableStateOf(false) }
 
-    LaunchedEffect(initialTrack) {
-        val dbTrack = viewModel.isExist(initialTrack)
-        if (dbTrack != null) {
-            currentTrack = dbTrack
-        }
+    LaunchedEffect(track.id) {
+        val existingTrack = viewModel.isExist(track)
+        isFavorite = existingTrack?.favorite ?: false
     }
 
-    Box(
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    val playlists by viewModel.playlists.collectAsStateWithLifecycle(initialValue = emptyList())
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Шапка: только стрелка назад без заголовка — как на макете.
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier.padding(top = 24.dp, start = 4.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back),
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp)
-            ) {
-                // Большая обложка ~квадрат. По умолчанию используем доступную ширину минус отступы.
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier.padding(top = 24.dp, start = 4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.back),
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+        ) {
+            item {
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -122,190 +127,133 @@ fun TrackDetailsScreen(
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (currentTrack.artworkUrl.isNullOrBlank()) {
-                        Icon(
-                            modifier = Modifier.size(80.dp),
-                            painter = painterResource(id = R.drawable.ic_music),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    if (!artworkUrl.isNullOrBlank()) {
+                        val bigArtworkUrl = artworkUrl.replaceAfterLast('/', "512x512bb.jpg")
+                        SubcomposeAsyncImage(
+                            model = bigArtworkUrl.toUri(),
+                            contentDescription = trackName,
+                            contentScale = ContentScale.Crop,
+                            loading = { CircularProgressIndicator(modifier = Modifier.size(48.dp)) },
+                            error = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_image_placeholder),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(100.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            modifier = Modifier.fillMaxSize()
                         )
                     } else {
-                        SubcomposeAsyncImage(
-                            model = currentTrack.artworkUrl,
-                            contentDescription = currentTrack.trackName,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                        Icon(
+                            painter = painterResource(R.drawable.ic_image_placeholder),
+                            contentDescription = null,
+                            modifier = Modifier.size(100.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+
+
                 Text(
-                    text = currentTrack.trackName,
+                    text = trackName,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = currentTrack.artistName,
+                    text = artistName,
                     fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(top = 8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-                // Две круглые серые кнопки: «добавить в плейлист» и «избранное».
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RoundActionButton(
-                        onClick = { showSheet = true },
+                        onClick = { showBottomSheet = true },
                         contentDescription = stringResource(R.string.add_to_playlist_action)
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                        Icon(Icons.Default.Add, contentDescription = null)
                     }
 
                     RoundActionButton(
                         onClick = {
-                            val newFav = !currentTrack.favorite
-                            val updated = currentTrack.copy(favorite = newFav)
-                            currentTrack = updated
-                            viewModel.toggleFavorite(updated, newFav)
+                            isFavorite = !isFavorite
+                            viewModel.toggleFavorite(track, isFavorite = isFavorite)
                         },
                         contentDescription = stringResource(R.string.add_to_favorite)
                     ) {
                         Icon(
-                            imageVector = if (currentTrack.favorite)
-                                Icons.Filled.Favorite
-                            else
-                                Icons.Filled.FavoriteBorder,
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = null,
-                            tint = if (currentTrack.favorite)
-                                Color(0xFFE53935) // красное сердце
-                            else
-                                MaterialTheme.colorScheme.onSurface
+                            tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(30.dp))
 
-                // Длительность — лейбл слева, значение справа.
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(R.string.duration_label),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 13.sp
-                    )
-                    Text(
-                        text = currentTrack.trackTime,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 13.sp
-                    )
-                }
+
+                TrackDetailRow(stringResource(R.string.duration_label), trackTime)
+
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 
-    if (showSheet) {
+    if (showBottomSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
+            onDismissRequest = { showBottomSheet = false },
             sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = {
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.add_to_playlist_title),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                if (playlists.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.no_playlists),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .size(width = 40.dp, height = 4.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                            shape = MaterialTheme.shapes.extraLarge
                         )
-                    }
-                } else {
-                    LazyColumn {
-                        items(playlists) { p ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        val updated = currentTrack.copy(playlistId = p.id)
-                                        currentTrack = updated
-                                        viewModel.insertTrackToPlaylist(updated, p.id)
-                                        coroutineScope.launch {
-                                            sheetState.hide()
-                                            showSheet = false
-                                        }
-                                    }
-                                    .padding(vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(45.dp)
-                                        .clip(RoundedCornerShape(2.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                                ) {
-                                    if (p.coverImageUri != null) {
-                                        AsyncImage(
-                                            model = Uri.parse(p.coverImageUri),
-                                            contentDescription = p.name,
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                    } else {
-                                        Image(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .padding(8.dp),
-                                            painter = painterResource(id = R.drawable.ic_music),
-                                            contentDescription = p.name,
-                                            colorFilter = ColorFilter.tint(
-                                                MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.size(12.dp))
-                                Column {
-                                    Text(
-                                        text = p.name,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        text = "${p.tracks.size} ${stringResource(R.string.tracks_word)}",
-                                        fontSize = 11.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
+                )
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.add_to_playlist_title),
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
+                )
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                ) {
+                    items(playlists) { playlist ->
+                        PlaylistSelectionItem(playlist) {
+                            viewModel.insertTrackToPlaylist(track, playlist.id)
+                            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                showBottomSheet = false
                             }
                         }
                     }
@@ -315,23 +263,85 @@ fun TrackDetailsScreen(
     }
 }
 
-/**
- * Круглая серая кнопка-ободок (как в макете деталей трека).
- */
+@Composable
+private fun TrackDetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
+        Text(text = value, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
+    }
+}
+
+@Composable
+private fun PlaylistSelectionItem(playlist: Playlist, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(45.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            if (playlist.coverImageUri != null) {
+                AsyncImage(
+                    model = playlist.coverImageUri.toUri(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    painter = painterResource(R.drawable.ic_image_placeholder),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp).align(Alignment.Center),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+            Text(text = playlist.name, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+            Text(
+                text = pluralStringResource(
+                    id = R.plurals.tracks_count,
+                    count = playlist.tracks.size,
+                    playlist.tracks.size
+                ),
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+
 @Composable
 private fun RoundActionButton(
     onClick: () -> Unit,
-    contentDescription: String,
+    @Suppress("UNUSED_PARAMETER") contentDescription: String,
     content: @Composable () -> Unit
 ) {
     Box(
         modifier = Modifier
-            .size(50.dp)
-            .clip(CircleShape)
+            .size(51.dp)
+            .clip(RoundedCornerShape(50.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .clickable(onClick = onClick),
+            .clickable { onClick() }
+            .padding(12.dp),
         contentAlignment = Alignment.Center
     ) {
         content()
     }
 }
+
+
+

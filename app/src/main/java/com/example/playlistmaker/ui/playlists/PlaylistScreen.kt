@@ -1,9 +1,7 @@
 package com.example.playlistmaker.ui.playlists
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,7 +21,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,15 +40,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import com.example.playlistmaker.R
-import com.example.playlistmaker.data.network.Track
+import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.ui.search.TrackListItem
+import com.example.playlistmaker.ui.theme.BrandBlue
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,22 +60,22 @@ import kotlinx.coroutines.launch
 fun PlaylistScreen(
     modifier: Modifier = Modifier,
     playlistViewModel: PlaylistViewModel,
-    index: Int,
+    @Suppress("UNUSED_PARAMETER") index: Int,
     navigateToTrack: (Track) -> Unit,
     navigateBack: () -> Unit,
-    onClick: (Int?) -> Unit = {}
+    @Suppress("UNUSED_PARAMETER") onClick: (Int?) -> Unit = {}
 ) {
-    val playlist by playlistViewModel.playlist.collectAsState(null)
+    val playlist by playlistViewModel.playlist.collectAsStateWithLifecycle(null)
     val current = playlist
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(value = false) }
+    var showBottomSheet by remember { mutableStateOf(value = false) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
 
-    if (showDeleteDialog && current != null) {
+    if (showDeleteDialog && (current != null)) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("") }, // Пустой заголовок как на скрине
+            title = { Text("") },
             text = {
                 Text(
                     text = stringResource(
@@ -95,7 +95,7 @@ fun PlaylistScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.yes).uppercase(),
-                        color = Color(0xFF3772E7) // Синий цвет для "ДА"
+                        color = BrandBlue
                     )
                 }
             },
@@ -103,7 +103,7 @@ fun PlaylistScreen(
                 TextButton(onClick = { showDeleteDialog = false }) {
                     Text(
                         text = stringResource(R.string.no).uppercase(),
-                        color = Color(0xFF3772E7) // Синий цвет для "НЕТ"
+                        color = BrandBlue
                     )
                 }
             }
@@ -161,7 +161,7 @@ fun PlaylistScreen(
             ) {
                 CircularProgressIndicator()
             }
-            // Стрелка назад поверх лоадера.
+
             IconButton(
                 onClick = navigateBack,
                 modifier = Modifier.padding(top = 24.dp, start = 4.dp)
@@ -198,7 +198,7 @@ private fun PlaylistHeader(
     onMoreClick: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Большая квадратная обложка во всю ширину экрана.
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -208,7 +208,7 @@ private fun PlaylistHeader(
         ) {
             if (!playlist.coverImageUri.isNullOrBlank()) {
                 SubcomposeAsyncImage(
-                    model = Uri.parse(playlist.coverImageUri),
+                    model = playlist.coverImageUri.toUri(),
                     contentDescription = playlist.name,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -221,7 +221,7 @@ private fun PlaylistHeader(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            // Стрелка назад поверх обложки в левом верхнем углу.
+
             IconButton(
                 onClick = onBack,
                 modifier = Modifier
@@ -258,7 +258,7 @@ private fun PlaylistHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
-            // Kebab-меню.
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -275,22 +275,31 @@ private fun PlaylistHeader(
     }
 }
 
-/**
- * Считает общую длительность плейлиста (в минутах) и возвращает строку вида
- * "300 минут · 98 треков".
- */
+
 @Composable
 private fun playlistMeta(tracks: List<Track>): String {
-    val totalSeconds = tracks.sumOf { track ->
-        val parts = track.trackTime.split(":")
-        if (parts.size == 2) {
-            (parts[0].toIntOrNull() ?: 0) * 60 + (parts[1].toIntOrNull() ?: 0)
-        } else 0
+
+
+    val totalMinutes = remember(tracks) {
+        val totalSeconds = tracks.sumOf { track ->
+            val parts = track.trackTime.split(":")
+            if (parts.size == 2) {
+                (parts[0].toIntOrNull() ?: 0) * 60 + (parts[1].toIntOrNull() ?: 0)
+            } else 0
+        }
+        totalSeconds / 60
     }
-    val totalMinutes = totalSeconds / 60
-    val minutesWord = stringResource(R.string.minutes_word)
-    val tracksWord = stringResource(R.string.tracks_word)
-    return "$totalMinutes $minutesWord · ${tracks.size} $tracksWord"
+    val minutesText = pluralStringResource(
+        id = R.plurals.minutes_count,
+        count = totalMinutes,
+        totalMinutes
+    )
+    val tracksText = pluralStringResource(
+        id = R.plurals.tracks_count,
+        count = tracks.size,
+        tracks.size
+    )
+    return remember(minutesText, tracksText) { "$minutesText · $tracksText" }
 }
 
 @Composable
@@ -305,7 +314,7 @@ private fun PlaylistMenuBottomSheet(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
     ) {
-        // Шапка в BottomSheet: маленькая обложка + инфо.
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -320,7 +329,7 @@ private fun PlaylistMenuBottomSheet(
             ) {
                 if (!playlist.coverImageUri.isNullOrBlank()) {
                     AsyncImage(
-                        model = Uri.parse(playlist.coverImageUri),
+                        model = playlist.coverImageUri.toUri(),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
@@ -345,7 +354,11 @@ private fun PlaylistMenuBottomSheet(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "${playlist.tracks.size} ${stringResource(R.string.tracks_word)}",
+                    text = pluralStringResource(
+                        id = R.plurals.tracks_count,
+                        count = playlist.tracks.size,
+                        playlist.tracks.size
+                    ),
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -354,7 +367,7 @@ private fun PlaylistMenuBottomSheet(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Пункты меню.
+
         BottomSheetMenuItem(
             text = stringResource(R.string.share_playlist),
             onClick = onShareClick
@@ -390,3 +403,6 @@ private fun BottomSheetMenuItem(
         )
     }
 }
+
+
+

@@ -31,10 +31,10 @@ class SearchHistoryPreferences(
                     mutableListOf()
                 }
 
-                history.remove(word) // удаляем дубликат, если был
+                history.remove(word)
                 history.add(0, word)
 
-                // храним не более MAX_ENTRIES элементов
+
                 val limited = history.take(MAX_ENTRIES)
                 val updatedString = limited.joinToString(SEPARATOR)
 
@@ -67,7 +67,10 @@ class SearchHistoryPreferences(
 
     private companion object {
         const val MAX_ENTRIES = 10
-        // Используем редкий символ-разделитель: запятая встречается в названиях треков.
+
         const val SEPARATOR = ""
     }
 }
+
+
+

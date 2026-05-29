@@ -1,11 +1,9 @@
 package com.example.playlistmaker.ui.playlists
 
-import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,10 +38,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.domain.model.Playlist
@@ -71,7 +72,7 @@ fun PlaylistListItem(
         ) {
             if (playlist.coverImageUri != null) {
                 AsyncImage(
-                    model = Uri.parse(playlist.coverImageUri),
+                    model = playlist.coverImageUri.toUri(),
                     contentDescription = playlist.name,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
@@ -96,7 +97,11 @@ fun PlaylistListItem(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "${playlist.tracks.size} ${stringResource(R.string.tracks_word)}",
+                text = pluralStringResource(
+                    id = R.plurals.tracks_count,
+                    count = playlist.tracks.size,
+                    playlist.tracks.size
+                ),
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -112,10 +117,11 @@ fun PlaylistsScreen(
     navigateToPlaylist: (Long) -> Unit,
     navigateBack: () -> Unit
 ) {
-    val playlists by playlistsViewModel.playlists.collectAsState(emptyList())
+    val playlists by playlistsViewModel.playlists.collectAsStateWithLifecycle(emptyList())
     var playlistToDelete by remember { mutableStateOf<Playlist?>(null) }
 
     if (playlistToDelete != null) {
+        val currentPlaylist = playlistToDelete!!
         AlertDialog(
             onDismissRequest = { playlistToDelete = null },
             title = { Text(stringResource(R.string.delete_playlist)) },
@@ -123,14 +129,14 @@ fun PlaylistsScreen(
                 Text(
                     stringResource(
                         R.string.delete_playlist_confirmation,
-                        playlistToDelete?.name.orEmpty()
+                        currentPlaylist.name
                     )
                 )
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        playlistToDelete?.id?.let { playlistsViewModel.deletePlaylist(it) }
+                        playlistsViewModel.deletePlaylist(currentPlaylist.id)
                         playlistToDelete = null
                     }
                 ) { Text(stringResource(R.string.yes)) }
@@ -149,7 +155,7 @@ fun PlaylistsScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Шапка как у остальных экранов: маленькая стрелка + крупный заголовок.
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -183,7 +189,7 @@ fun PlaylistsScreen(
             }
         }
 
-        // FAB как на макете — голубой, круглый, плюс.
+
         FloatingActionButton(
             modifier = Modifier
                 .padding(24.dp)
@@ -201,3 +207,6 @@ fun PlaylistsScreen(
         }
     }
 }
+
+
+

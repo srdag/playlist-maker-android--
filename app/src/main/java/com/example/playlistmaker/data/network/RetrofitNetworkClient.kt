@@ -6,16 +6,24 @@ import com.example.playlistmaker.data.dto.BaseResponse
 import com.example.playlistmaker.data.dto.TracksSearchRequest
 import com.example.playlistmaker.data.dto.TracksSearchResponse
 import com.example.playlistmaker.domain.NetworkClient
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 class RetrofitNetworkClient(private val storage: Storage) : NetworkClient {
 
     private val iTunesBaseUrl = "https://itunes.apple.com/"
 
+    private val okHttpClient = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build()
+
     private val retrofit = Retrofit.Builder()
         .baseUrl(iTunesBaseUrl)
+        .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
@@ -24,8 +32,7 @@ class RetrofitNetworkClient(private val storage: Storage) : NetworkClient {
     override suspend fun doRequest(dto: Any): BaseResponse {
         if (dto is TracksSearchRequest) {
             val requestText = dto.expression.trim().lowercase()
-            
-            // Логируем запрос для отладки
+
             Log.d("RetrofitNetworkClient", "Searching for: ${dto.expression}")
 
             if (requestText == "error" || requestText == "empty") {

@@ -9,7 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.playlistmaker.SettingsScreen
-import com.example.playlistmaker.data.network.Track
+import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.ui.activity.MainScreen
 import com.example.playlistmaker.ui.playlists.FavoritesScreen
 import com.example.playlistmaker.ui.playlists.NewPlaylistScreen
@@ -25,8 +25,8 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-// Сентинел для отсутствующего artworkUrl: пустой path-сегмент в URL вызывает
-// проблемы у NavController, поэтому передаём строку-маркер.
+
+
 private const val ARTWORK_NONE = "__none__"
 
 @Composable
@@ -36,8 +36,8 @@ fun PlaylistHost(
     playlistsViewModel: PlaylistsViewModel,
     themeViewModel: ThemeViewModel,
 ) {
-    // Хелпер для безопасного формирования маршрута в Track details:
-    // имена треков и артистов могут содержать пробелы, кириллицу, спецсимволы.
+
+
     fun navigateToTrack(track: Track) {
         val name = URLEncoder.encode(track.trackName, StandardCharsets.UTF_8.toString())
         val artist = URLEncoder.encode(track.artistName, StandardCharsets.UTF_8.toString())
@@ -129,7 +129,7 @@ fun PlaylistHost(
                 index = index,
                 navigateToTrack = { track -> navigateToTrack(track) },
                 navigateBack = { navController.popBackStack() },
-                onClick = { /* действие по клику, если нужно */ }
+                onClick = {  }
             )
         }
 
@@ -166,3 +166,6 @@ fun PlaylistHost(
         }
     }
 }
+
+
+

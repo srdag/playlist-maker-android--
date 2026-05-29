@@ -1,10 +1,9 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="120dp"
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="120dp"
     android:height="120dp"
     android:viewportWidth="120"
     android:viewportHeight="120">
 
-    <!-- Musical Note Body -->
+
     <path
         android:fillColor="#1A1B22"
         android:pathData="M20,60 A15,15 0 1,0 20,90 A15,15 0 1,0 20,60 Z" />
@@ -15,25 +14,30 @@
         android:fillColor="#1A1B22"
         android:pathData="M32,75 L32,30 L92,10 L92,95 L88,95 L88,20 L36,38 L36,75 Z" />
 
-    <!-- Yellow Confused Face -->
+
     <path
         android:fillColor="#FFC93B"
         android:pathData="M60,30 A35,35 0 1,1 60,100 A35,35 0 1,1 60,30 Z" />
 
-    <!-- Left Eye -->
+
     <path
         android:fillColor="#1A1B22"
         android:pathData="M48,55 A4,4 0 1,1 48,63 A4,4 0 1,1 48,55 Z" />
 
-    <!-- Right Eye -->
+
     <path
         android:fillColor="#1A1B22"
         android:pathData="M78,55 A4,4 0 1,1 78,63 A4,4 0 1,1 78,55 Z" />
 
-    <!-- Confused Mouth (Curved) -->
+
     <path
         android:strokeColor="#1A1B22"
         android:strokeWidth="4"
         android:strokeLineCap="round"
         android:pathData="M55,85 Q65,75 75,85" />
 </vector>
+
+
+
+
+

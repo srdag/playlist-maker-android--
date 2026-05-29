@@ -12,3 +12,6 @@ class SearchHistoryRepositoryImpl(
 
     override fun clear() = preferences.clear()
 }
+
+
+

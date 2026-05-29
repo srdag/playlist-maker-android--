@@ -10,10 +10,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TrackDao {
 
-    /**
-     * INSERT с REPLACE используем как upsert: если трек с таким id уже есть,
-     * он перезатирается новыми полями (этим мы меняем favorite и playlistId).
-     */
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTrack(track: TrackEntity)
 
@@ -32,3 +29,6 @@ interface TrackDao {
     @Query("DELETE FROM track WHERE playlistId = :playlistId")
     suspend fun deleteTracksByPlaylistId(playlistId: Long)
 }
+
+
+

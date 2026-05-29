@@ -3,7 +3,7 @@ package com.example.playlistmaker.ui.playlists
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.playlistmaker.data.network.Track
+import com.example.playlistmaker.domain.model.Track
 import com.example.playlistmaker.domain.PlaylistsRepository
 import com.example.playlistmaker.domain.TracksRepository
 import com.example.playlistmaker.domain.model.Playlist
@@ -57,7 +57,7 @@ class PlaylistsViewModel(
 
     fun deletePlaylist(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            // deletePlaylistById внутри сам чистит треки, привязанные к плейлисту.
+
             playlistsRepository.deletePlaylistById(id)
         }
     }
@@ -83,3 +83,6 @@ class PlaylistsViewModel(
             }
     }
 }
+
+
+

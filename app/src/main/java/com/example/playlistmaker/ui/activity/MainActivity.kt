@@ -28,7 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,15 +54,15 @@ class MainActivity : ComponentActivity() {
     private val playlistsViewModel by viewModels<PlaylistsViewModel> {
         PlaylistsViewModel.getViewModelFactory()
     }
-    // Activity-уровневая ViewModel темы — переживает рекомпозицию и
-    // одна на всё приложение, поэтому Settings и Theme видят одинаковое значение.
+
+
     private val themeViewModel by viewModels<ThemeViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val darkTheme by themeViewModel.darkTheme.collectAsState()
+            val darkTheme by themeViewModel.darkTheme.collectAsStateWithLifecycle()
             PlaylistMakerTheme(darkTheme = darkTheme) {
                 val navController = rememberNavController()
                 PlaylistHost(
@@ -125,15 +125,15 @@ fun MainScreen(
     onSearchButtonClick: () -> Unit = {},
     onSettingsButtonClick: () -> Unit = {},
 ) {
-    // Контейнер цветом фона темы — между светлой и тёмной он почти не отличается,
-    // но позволяет красиво "проступать" под скруглённый верх карточки.
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Хедер: всегда голубой с белым текстом, независимо от темы.
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -148,7 +148,7 @@ fun MainScreen(
                 )
             }
 
-            // Поднимающаяся карточка с пунктами меню.
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -198,3 +198,6 @@ fun MainScreen(
         }
     }
 }
+
+
+

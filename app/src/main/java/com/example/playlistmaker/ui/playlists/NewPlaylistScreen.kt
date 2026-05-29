@@ -32,7 +32,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,7 +62,7 @@ fun NewPlaylistScreen(
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
-    val coverImageUri by viewModel.coverImageUri.collectAsState()
+    val coverImageUri by viewModel.coverImageUri.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -100,7 +100,7 @@ fun NewPlaylistScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Шапка: стрелка + заголовок «Новый плейлист».
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -125,7 +125,7 @@ fun NewPlaylistScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Большой квадрат-плейсхолдер обложки в центре.
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
@@ -218,3 +218,6 @@ fun NewPlaylistScreen(
         }
     }
 }
+
+
+

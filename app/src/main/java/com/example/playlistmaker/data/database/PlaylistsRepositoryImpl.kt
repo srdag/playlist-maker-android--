@@ -38,9 +38,12 @@ class PlaylistsRepositoryImpl(
     }
 
     override suspend fun deletePlaylistById(id: Long) {
-        // Сначала чистим треки, ссылающиеся на этот плейлист,
-        // потом удаляем сам плейлист.
+
+
         trackDao.deleteTracksByPlaylistId(id)
         playlistDao.deletePlaylistById(id)
     }
 }
+
+
+

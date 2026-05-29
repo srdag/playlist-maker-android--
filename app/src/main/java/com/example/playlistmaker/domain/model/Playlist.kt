@@ -1,11 +1,15 @@
 package com.example.playlistmaker.domain.model
 
-import com.example.playlistmaker.data.network.Track
+import androidx.compose.runtime.Immutable
 
+
+@Immutable
 data class Playlist(
     val id: Long = 0,
     val name: String,
     val description: String,
     val coverImageUri: String? = null,
-    var tracks: List<Track> = emptyList()
+    val tracks: List<Track> = emptyList()
 )
+
+

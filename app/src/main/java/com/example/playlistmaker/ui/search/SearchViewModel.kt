@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.playlistmaker.domain.SearchHistoryRepository
 import com.example.playlistmaker.domain.TracksRepository
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,15 +23,16 @@ class SearchViewModel(
     private val _searchScreenState = MutableStateFlow<SearchState>(SearchState.Initial)
     val searchScreenState = _searchScreenState.asStateFlow()
 
-    // Список последних запросов пользователя — показывается, когда строка поиска пуста.
-    private val _historyState = MutableStateFlow<List<String>>(emptyList())
+
+
+    private val _historyState = MutableStateFlow<ImmutableList<String>>(persistentListOf())
     val historyState = _historyState.asStateFlow()
 
-    // Запоминаем последний запрос, чтобы кнопка «Обновить» знала, что повторить.
+
     private var lastQuery: String = ""
 
-    // Активная корутина поиска — отменяем предыдущую при новом запросе,
-    // чтобы старые ответы не перезаписывали актуальный результат.
+
+
     private var searchJob: Job? = null
 
     init {
@@ -37,7 +41,7 @@ class SearchViewModel(
 
     fun loadHistory() {
         viewModelScope.launch(Dispatchers.IO) {
-            _historyState.update { historyRepository.getHistory() }
+            _historyState.update { historyRepository.getHistory().toImmutableList() }
         }
     }
 
@@ -55,7 +59,7 @@ class SearchViewModel(
             try {
                 _searchScreenState.update { SearchState.Searching }
                 val list = tracksRepository.searchTracks(expression = whatSearch)
-                _searchScreenState.update { SearchState.Success(list = list) }
+                _searchScreenState.update { SearchState.Success(list = list.toImmutableList()) }
             } catch (e: IOException) {
                 _searchScreenState.update { SearchState.Fail(e.message.orEmpty()) }
             } catch (e: Exception) {
@@ -70,10 +74,7 @@ class SearchViewModel(
         }
     }
 
-    /**
-     * Сохраняем запрос в историю — вызываем, когда пользователь "подтвердил"
-     * запрос: например, кликнул по результату.
-     */
+
     fun saveQueryToHistory(query: String) {
         if (query.isBlank()) return
         historyRepository.addQuery(query.trim())
@@ -98,3 +99,6 @@ class SearchViewModel(
             }
     }
 }
+
+
+

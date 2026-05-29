@@ -10,11 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-/**
- * ViewModel экрана отдельного плейлиста. Принимает id плейлиста и
- * выставляет наружу реактивный Flow с данными плейлиста, который
- * автоматически обновляется при изменениях в базе.
- */
+
 class PlaylistViewModel(
     private val playlistsRepository: PlaylistsRepository,
     private val playlistId: Long,
@@ -41,3 +37,6 @@ class PlaylistViewModel(
             }
     }
 }
+
+
+

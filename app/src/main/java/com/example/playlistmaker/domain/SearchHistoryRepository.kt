@@ -5,3 +5,6 @@ interface SearchHistoryRepository {
     fun addQuery(query: String)
     fun clear()
 }
+
+
+

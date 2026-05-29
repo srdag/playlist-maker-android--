@@ -6,6 +6,8 @@ import com.example.playlistmaker.data.dto.TracksSearchRequest
 import com.example.playlistmaker.data.dto.TracksSearchResponse
 import com.example.playlistmaker.domain.NetworkClient
 import com.example.playlistmaker.domain.TracksRepository
+import com.example.playlistmaker.domain.model.Track
+import com.example.playlistmaker.domain.model.toEntity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -46,9 +48,9 @@ class TracksRepositoryImpl(
     }
 
     override suspend fun insertTrackToPlaylist(track: Track, playlistId: Long) {
-        // Если трека ещё нет в базе — мы получим из DAO null, поэтому делаем upsert
-        // через insertTrack (REPLACE). При повторной вставке сохраняем уже установленные
-        // флаги (favorite), беря их из текущей записи при наличии.
+
+
+
         val existing = trackDao.getTrackById(track.id)
         val merged = track.copy(
             playlistId = playlistId,
@@ -59,7 +61,7 @@ class TracksRepositoryImpl(
     }
 
     override suspend fun deleteTrackFromPlaylist(track: Track) {
-        // "Удаление из плейлиста" — это сброс playlistId до 0, не удаление трека целиком.
+
         val existing = trackDao.getTrackById(track.id) ?: return
         trackDao.insertTrack(existing.copy(playlistId = 0))
     }
@@ -78,3 +80,6 @@ class TracksRepositoryImpl(
         trackDao.deleteTracksByPlaylistId(playlistId)
     }
 }
+
+
+
