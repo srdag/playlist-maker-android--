@@ -196,7 +196,7 @@ fun NewPlaylistScreen(
             Button(
                 onClick = {
                     if (name.isNotBlank()) {
-                        viewModel.createNewPlayList(name.trim(), description.trim())
+                        viewModel.createNewPlayList(context, name.trim(), description.trim())
                         onSaved()
                     }
                 },

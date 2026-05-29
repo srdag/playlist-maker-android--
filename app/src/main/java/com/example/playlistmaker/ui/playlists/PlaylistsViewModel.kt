@@ -1,5 +1,6 @@
 package com.example.playlistmaker.ui.playlists
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -31,9 +32,15 @@ class PlaylistsViewModel(
         _coverImageUri.update { uri }
     }
 
-    fun createNewPlayList(namePlaylist: String, description: String) {
+    fun createNewPlayList(context: Context, namePlaylist: String, description: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            playlistsRepository.addNewPlaylist(namePlaylist, description, _coverImageUri.value)
+            playlistsRepository.addNewPlaylist(
+                context,
+                namePlaylist,
+                description,
+                _coverImageUri.value
+            )
+            _coverImageUri.update { null }
         }
     }
 
