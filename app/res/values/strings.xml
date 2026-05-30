@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">PlaylistMaker</string>
+    <string name="header">PlayList maker</string>
+    <string name="favourite">Избранное</string>
+    <string name="Playlists">Плейлисты</string>
+    <string name="Search">Поиск</string>
+    <string name="settings">Настройки</string>
+    <string name="settings_text">Настройки</string>
+    <string name="black_theme_text">Темная тема</string>
+    <string name="share_app">Поделиться приложением</string>
+    <string name="write_to_developers">Написать в поддержку</string>
+    <string name="artem">Пользовательское соглашение</string>
+    <string name="mailto_dorogaada_yandex_ru">mailto:dorogaada@yandex.ru</string>
+    <string name="https_praktikum_yandex_ru_offer">https://praktikum.yandex.ru/offer/</string>
+    <string name="share_app_text">вступай в приложение</string>
+    <string name="email_subject">Сообщение разработчикам и разработчицам приложения Playlist Maker</string>
+    <string name="email_body">Спасибо разработчикам и разработчицам за крутое приложение!</string>
+</resources>
